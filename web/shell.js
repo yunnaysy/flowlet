@@ -50,6 +50,8 @@ function applyTab() {
   }
   for (const a of document.querySelectorAll("#tabs a")) { const on = a.dataset.tab === tab; a.classList.toggle("active", on); on ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"); }
   $("appbarTitle").textContent = TITLE[tab];
+  // The hero h1 only shows on Home; other tabs get a screen-reader h1 so every tab has one.
+  const th = $("tabH1"); if (th) { th.textContent = `Flowlet ${TITLE[tab]}`; th.hidden = tab === "home"; }
   document.title = tab === "home" ? "Flowlet · Money moves on your rules" : `${TITLE[tab]} · Flowlet`;
   // Tabs are peers (Appllama / Emil): switching is instant, no slide. Each tab opens at its top.
   if (changed && !first) window.scrollTo({ top: 0, behavior: "auto" });
