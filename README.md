@@ -12,6 +12,8 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 |---|---|
 | ![Home control center](docs/img/mobile-home-after-demo.png) | ![Execution proof for one loop](docs/img/mobile-proof-live.png) |
 
+**Demo video:** [docs/video/flowlet-demo.mp4](docs/video/flowlet-demo.mp4) (1:47, English captions, no voiceover, recorded from the live site in no-wallet replay mode).
+
 Design system: [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) · Security, custody & privacy: [docs/SECURITY.md](docs/SECURITY.md) · Pitch: [docs/PITCH.md](docs/PITCH.md)
 
 ## How it works
@@ -31,7 +33,7 @@ Every loop leaves three transactions you can open: the **origin** on Sepolia, th
 |---|---|---|
 | **Connect wallet · Try live** | MetaMask on Ethereum Sepolia. The vault owner can run the demo loop live; any other wallet gets a read-only view and the replay. | `LIVE TESTNET` (warns on the wrong network) |
 | **Explore demo without wallet** | Replays the recorded Sepolia + Lasna run step by step. Every link is a real transaction; nothing is sent. | `DEMO MODE` |
-| **Watch the 60-second walkthrough** | There is no video yet. The link opens the written [60-second demo](#60-second-demo) below. | |
+| **Watch the 60-second walkthrough** | The in-app link opens the written [60-second demo](#60-second-demo) below. A recorded demo video is in `docs/video/`. | |
 
 The local rehearsal (`?net=local`, two Anvil chains plus a stand-in relayer) is labelled `LOCAL REHEARSAL · private test chains on this computer · not real data`.
 

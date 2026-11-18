@@ -22,7 +22,7 @@ Five full loops on Ethereum Sepolia + Reactive Lasna (3 standing-order payments,
 
 - Testnet only, unaudited contracts.
 - Live "Run demo loop" sends transactions only for the vault owner's wallet; everyone else sees the recorded replay, so the demo never spends on behalf of visitors.
-- No video walkthrough yet; the [60-second demo](../README.md#60-second-demo) is written.
+- Demo video: `docs/video/` (recorded from the live site, replay mode). The [60-second demo](../README.md#60-second-demo) is also written out.
 - The local rehearsal uses a stand-in relayer instead of Reactive Network and is labelled as such.
 
 **Ask.** Open the app, choose **Explore demo without wallet**, and tap **View execution proof**.
