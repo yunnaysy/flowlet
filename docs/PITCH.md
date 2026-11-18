@@ -26,7 +26,7 @@ Lasna reactive tx → callback through Reactive's proxy → rule decision → tr
 latency. Each callback is shown to come from Reactive's callback proxy, not from the user or the page.
 
 **Craft.** 21 Foundry tests (full-loop simulation, circuit breaker, daily limit, reserve override, fuzzing), a
-one-click RUN DEMO, a local two-chain rehearsal, a CLI, and a report script for the submission.
+one-click Run demo, a local two-chain rehearsal, a CLI, and a report script for the submission.
 
 **Who it's for.** Anyone paid in stablecoins (freelancers, DAO contributors, remote workers) who wants rent,
 savings and safety handled automatically without trusting a bot.

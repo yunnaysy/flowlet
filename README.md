@@ -91,7 +91,7 @@ Safety on the destination:
 | `test/Flowlet.t.sol` | 21 Foundry tests: full-loop simulation, circuit breaker, daily limit, reserve override, security, fuzzing |
 | `web/` | Dashboard (`index.html`, `app.js`, `style.css`) and the shared trace builder `trace.js` |
 | `scripts/deploy.sh` | Deploys and wires everything, writes `deployments/<net>.json` |
-| `scripts/demo.sh` | The RUN DEMO story from the command line |
+| `scripts/demo.sh` | The Run demo story from the command line |
 | `scripts/report.mjs` | Full-loop evidence table (Markdown) from RPC data only |
 | `scripts/flowlet.sh` | CLI: status, order, cancel, save, guard, pause, resume, revoke, mint, cron fast/slow |
 | `scripts/local-stack.sh` | Two local anvil chains plus a relayer that plays Reactive Network, plus the dashboard |
@@ -102,7 +102,7 @@ Safety on the destination:
 ```bash
 git clone --recursive <repo-url> flowlet && cd flowlet
 forge test                          # 21 tests
-scripts/local-stack.sh              # then open http://localhost:8000/web/?net=local and press RUN DEMO
+scripts/local-stack.sh              # then open http://localhost:8000/web/?net=local and press Run demo
 scripts/local-e2e.sh                # or: the same story headless, ~3 minutes, prints LOCAL E2E: OK
 ```
 
@@ -120,7 +120,7 @@ evidence comes from Ethereum Sepolia + Lasna (below).
 ```bash
 scripts/deploy.sh                          # MockUSD + FlowletVault (Sepolia), FlowletReactive (Lasna)
 python3 -m http.server 8000                # dashboard: http://localhost:8000/web/  (defaults to eth-sepolia)
-scripts/demo.sh                            # or press RUN DEMO with the deployer account in MetaMask
+scripts/demo.sh                            # or press Run demo with the deployer account in MetaMask
 node scripts/report.mjs                    # writes deployments/eth-sepolia.LOOP_REPORT.md
 scripts/flowlet.sh cron slow               # after recording: Cron100 to save lREACT
 ```

@@ -27,6 +27,35 @@ const ago = (ts) => { const s = Math.max(0, Math.floor(Date.now() / 1000 - ts));
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const isAddr = (a) => /^0x[0-9a-fA-F]{40}$/.test(String(a).trim());
 const reduceMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+// One outline icon set (24px grid, currentColor). No emoji glyphs.
+const svg = (d, cls = "i") => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const IC = {
+  copy: svg('<rect x="8.5" y="8.5" width="11" height="11" rx="2.2"/><path d="M15.5 8.5V6.7a2.2 2.2 0 0 0-2.2-2.2H6.7a2.2 2.2 0 0 0-2.2 2.2v6.6a2.2 2.2 0 0 0 2.2 2.2h1.8"/>'),
+  check: svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+  ext: svg('<path d="M14 5h5v5M19 5l-8 8"/><path d="M17 13.5V18a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h4.5"/>'),
+  home: svg('<path d="M4.5 11L12 4.5l7.5 6.5"/><path d="M6.5 9.5V19h11V9.5"/>'),
+  leaf: svg('<path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14z"/><path d="M5 19l7-7"/>'),
+  shield: svg('<path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z"/><path d="M12 8v5M12 16h.01"/>'),
+  play: svg('<path d="M8 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.2 5.1A.8.8 0 0 0 8 5.8z"/>'),
+  // Ethereum glyph only on the Ethereum Sepolia chip, where it is technically correct.
+  eth: svg('<path d="M12 3l6 9.2-6 3.6-6-3.6z"/><path d="M6 13.6l6 7.4 6-7.4-6 3.6z"/>'),
+  lasna: svg('<circle cx="12" cy="12" r="2.4"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5M12 20.5A8.5 8.5 0 0 1 3.5 12"/>'),
+};
+/** tUSD token badge, used on every balance and amount. */
+const TOK = `<span class="tok" translate="no">${svg('<circle cx="12" cy="12" r="8.5"/><path d="M8.6 10.3h6.8M8.6 13.7h6.8"/>')}tUSD</span>`;
+const chain = (cls, icon, name) => `<span class="chain ${cls}" translate="no">${icon}${esc(name)}</span>`;
+/** Hash chip: monospace value, copy button, explorer link when one exists. */
+function hashChip(base, h, kind = "tx") {
+  if (!h) return "–";
+  const what = kind === "tx" ? "transaction hash" : "address";
+  const url = base ? (kind === "tx" ? base.tx : base.addr) + h : null;
+  return `<span class="hash" translate="no"><code title="${esc(h)}">${esc(short(h))}</code><button type="button" class="hc-btn" data-copy="${esc(h)}" aria-label="Copy ${what}" title="Copy ${what}">${IC.copy}</button>${url ? `<a class="hc-btn" href="${esc(url)}" target="_blank" rel="noopener" aria-label="View ${what} on the explorer (opens in a new tab)" title="View on explorer">${IC.ext}</a>` : ""}</span>`;
+}
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest?.("[data-copy]"); if (!b) return;
+  try { await navigator.clipboard.writeText(b.dataset.copy); b.innerHTML = IC.check; b.classList.add("done"); announce("Copied"); setTimeout(() => { b.innerHTML = IC.copy; b.classList.remove("done"); }, 1400); } catch { log("copy failed: select the value and copy it manually"); }
+});
+function announce(msg) { const el = $("srStatus"); if (el) { el.textContent = ""; setTimeout(() => (el.textContent = msg), 30); } }
 function log(msg) { $("log").textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + $("log").textContent; }
 
 // --------------------------------------------------------------------- setup
@@ -42,12 +71,15 @@ async function loadConfig() {
     reactive: d.contracts.flowletReactive, token: d.contracts.mockUSD, wallet: d.wallet, callbackProxy: d.callbackProxy,
     startBlocks: d.startBlocks, logChunk: isLocal ? 2000 : 5000,
   };
-  $("netPill").textContent = isLocal ? "Local rehearsal · anvil" : `${d.destination} + Reactive Lasna · testnet`;
-  $("netPill").className = "pill " + (isLocal ? "warn" : "soft");
+  const destName = { 11155111: "Ethereum Sepolia", 84532: "Base Sepolia" }[d.destinationChainId] || d.destination;
+  $("netPill").innerHTML = isLocal
+    ? `<span class="chain local">Local rehearsal</span>${chain("eth", IC.eth, "Sepolia (anvil)")}${chain("lasna", IC.lasna, "Lasna (anvil)")}`
+    : `${chain("eth", d.destinationChainId === 11155111 ? IC.eth : IC.lasna, destName)}${chain("lasna", IC.lasna, "Reactive Lasna")}`;
+  $("netPill").className = "chains";
   $("connectBtn").hidden = isLocal;
   const dx = isLocal ? null : EXPLORERS[d.destinationChainId], lx = isLocal ? null : EXPLORERS.lasna;
-  const a = (base, addr) => (base ? `<a href="${esc(base.addr + addr)}" target="_blank" rel="noopener">${esc(short(addr))}</a>` : `<code>${esc(short(addr))}</code>`);
-  $("footer").innerHTML = `Vault ${a(dx, cfg.vault)} · Reactive contract ${a(lx, cfg.reactive)} · tUSD ${a(dx, cfg.token)} · Callback proxy ${a(dx, cfg.callbackProxy)}<br/>Flowlet is open source. Testnet only.`;
+  const a = (base, addr) => hashChip(base, addr, "address");
+  $("footer").innerHTML = `<span>Vault ${a(dx, cfg.vault)}</span><span>Reactive contract ${a(lx, cfg.reactive)}</span><span>${TOK} ${a(dx, cfg.token)}</span><span>Callback proxy ${a(dx, cfg.callbackProxy)}</span><p>Flowlet is open source. Testnet only.</p>`;
 }
 
 const call = (rpc, to, data) => rpc("eth_call", [{ to, data }, "latest"]);
@@ -98,7 +130,7 @@ const balanceOf = async (a) => BigInt(await call(destRpc, cfg.token, SEL.balance
 // ------------------------------------------------------------------ RUN DEMO
 const DEMO = [
   ["Get 5,000 test dollars", async (c) => { await tx.mint(5000n * 10n ** 6n); c.bal = await balanceOf(cfg.wallet); }],
-  ["Give Flowlet a 2,000 tUSD mandate", async () => {
+  ["Allow Flowlet to move up to 2,000 tUSD", async () => {
     await tx.approve(2000n * 10n ** 6n);
     const g = await call(destRpc, cfg.vault, SEL.guard);
     if (word(g, 4) === 1n) { await tx.resume(); await waitFor(async () => !(await lasnaBool(SEL.paused)), "Reactive resumed"); }
@@ -118,31 +150,33 @@ const DEMO = [
 function renderSteps(state = {}) {
   $("demoSteps").innerHTML = DEMO.map(([label], i) => {
     const st = state[i] ?? "";
-    const dot = st === "run" ? `<span class="dm" aria-hidden="true">${"<i></i>".repeat(9)}</span>` : st === "done" ? "✓" : st === "err" ? "!" : String(i + 1).padStart(2, "0");
+    const dot = st === "run" ? `<span class="dm" aria-hidden="true">${"<i></i>".repeat(9)}</span>` : st === "done" ? IC.check : st === "err" ? "!" : String(i + 1);
     return `<li class="${st}"${st === "run" ? ' aria-current="step"' : ""}><span class="dot">${dot}</span>${esc(label)}</li>`;
   }).join("");
 }
 async function runDemo() {
-  const btn = $("runDemo"); btn.disabled = true; btn.classList.remove("done"); btn.classList.add("running"); btn.textContent = "Running… watch the proof below";
+  const btn = $("runDemo"); btn.disabled = true; btn.classList.remove("done"); btn.classList.add("running"); btn.setAttribute("aria-busy", "true"); btn.innerHTML = `<span class="spin" aria-hidden="true"></span>Running… watch the proof below`;
+  document.body.classList.add("demo-running");
   const state = {}; const ctx = {};
   try {
     for (let i = 0; i < DEMO.length; i++) {
       state[i] = "run"; renderSteps(state);
       await DEMO[i][1](ctx);
       state[i] = "done"; renderSteps(state);
-      $("demoCount").textContent = `${i + 1} / ${DEMO.length}`;
+      $("demoCount").textContent = `${i + 1} of ${DEMO.length}`; announce(`Step ${i + 1} of ${DEMO.length} done: ${DEMO[i][0]}`);
     }
-    btn.classList.remove("running"); btn.classList.add("done");
-    btn.textContent = "✓ Demo complete · rules ran on their own";
+    btn.classList.remove("running"); btn.classList.add("done"); btn.removeAttribute("aria-busy"); document.body.classList.remove("demo-running");
+    btn.innerHTML = `${IC.check}Demo complete. The rules ran on their own.`; announce("Demo complete.");
     log("Demo complete. Every transfer above was executed by a Reactive callback, not by this page.");
   } catch (e) {
     const i = Object.keys(state).find((k) => state[k] === "run"); if (i != null) state[i] = "err"; renderSteps(state);
-    log("demo stopped: " + e.message); btn.classList.remove("running"); btn.textContent = "▶ RUN DEMO"; btn.disabled = false;
+    log("demo stopped: " + e.message); btn.classList.remove("running"); btn.removeAttribute("aria-busy"); document.body.classList.remove("demo-running"); btn.innerHTML = `${IC.play}Run demo`; btn.disabled = false;
+    announce(`Demo stopped: ${e.message}`);
   }
 }
 
 // ------------------------------------------------------------------ rendering
-function stat(k, v, s, cls) { return `<div class="stat ${cls}" data-k="${esc(k)}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div></div>`; }
+function stat(k, v, s, cls, unit = false) { return `<div class="stat ${cls}" data-k="${esc(k)}"><div class="k">${esc(k)}</div><div class="v-row"><span class="v">${esc(v)}</span>${unit ? TOK : ""}</div><div class="s">${esc(s)}</div></div>`; }
 const lastStats = {};
 function renderStats(html) {
   const box = $("stats"); const tmp = document.createElement("div"); tmp.innerHTML = html;
@@ -173,10 +207,10 @@ async function refreshState() {
   const sw = { savings: addrAt(sweep, 0), min: word(sweep, 1), bps: Number(word(sweep, 2)), on: word(sweep, 3) === 1n };
 
   renderStats(
-    stat("Wallet balance", `${fmtAmount(bal)}`, "tUSD, stays in your wallet", "sky") +
-    stat("Saved", fmtAmount(saved), "tUSD moved to savings", "mint") +
-    stat("Rent paid", fmtAmount(paid), "tUSD to the landlord", "peach") +
-    stat("Flowlet mandate", allowance !== 0n ? fmtAmount(allowance) : revoked ? "Revoked" : "None", allowance !== 0n ? "tUSD it may still move" : revoked ? "nothing can move" : "no access granted yet", allowance === 0n && revoked ? "rose" : "lilac"));
+    stat("Wallet balance", `${fmtAmount(bal)}`, "stays in your wallet", "sky", true) +
+    stat("Saved", fmtAmount(saved), "moved to savings", "mint", true) +
+    stat("Rent paid", fmtAmount(paid), "paid to the landlord", "peach", true) +
+    stat("Flowlet allowance", allowance !== 0n ? fmtAmount(allowance) : revoked ? "Revoked" : "None", allowance !== 0n ? "it may still move" : revoked ? "nothing can move" : "no access granted yet", allowance === 0n && revoked ? "rose" : "lilac", allowance !== 0n));
 
   const sub = (name, on, desc) => `<li><span><b>${esc(name)}</b><br/><small>${esc(desc)}</small></span><span class="switch ${on ? "on" : ""}" role="img" aria-label="${on ? "on" : "off"}"></span></li>`;
   $("subs").innerHTML =
@@ -188,49 +222,49 @@ async function refreshState() {
 
   const remTxt = guard.limit === 0n ? "no daily limit" : `${fmtAmount(rem)} of ${fmtAmount(guard.limit)} tUSD left today`;
   $("guardBox").innerHTML = `
-    <p><span class="pill ${guard.paused || rPaused ? "bad" : "soft"}">${guard.paused || rPaused ? "Paused · " + esc(REASON[guard.reason] ?? "") : "● Watching"}</span></p>
+    <p><span class="pill ${guard.paused || rPaused ? "bad" : "soft"}">${guard.paused || rPaused ? "Paused · " + esc(REASON[guard.reason] ?? "") : '<span class="dot" aria-hidden="true"></span>Watching'}</span></p>
     <ul class="subs">
       <li><span><b>Daily payment limit</b><br/><small class="muted">${esc(remTxt)}</small></span></li>
       <li><span><b>Emergency reserve</b><br/><small class="muted">Auto-save never takes your wallet below ${fmtAmount(guard.reserve)} tUSD. This rule overrides the auto-save %.</small></span></li>
       <li><span><b>Revoke = stop</b><br/><small class="muted">Setting the allowance to 0 makes the reactive contract pause itself and the vault.</small></span></li>
     </ul>`;
 
-  const cell = (k, v, sub) => `<div><small>${esc(k)}</small><b>${esc(v)}</b><span class="small muted">${esc(sub)}</span></div>`;
+  const cell = (k, v, sub, unit = true) => `<div><small>${esc(k)}</small><b><span class="n">${esc(v)}</span>${unit ? " " + TOK : ""}</b><span class="small muted">${esc(sub)}</span></div>`;
   $("fundGrid").innerHTML =
-    cell("In your wallet", `${fmtAmount(bal)} tUSD`, "Flowlet never holds a deposit") +
-    cell("Flowlet may move at most", allowance === 0n ? (revoked ? "0 · revoked" : "0 · not granted") : `${fmtAmount(allowance)} tUSD`, "your ERC-20 allowance to the vault") +
-    cell("Left today", guard.limit === 0n ? "no limit" : `${fmtAmount(rem)} tUSD`, "standing orders, Safety Guard") +
-    cell("Emergency reserve", `${fmtAmount(guard.reserve)} tUSD`, "auto-save never goes below");
+    cell("In your wallet", fmtAmount(bal), "Flowlet never holds a deposit") +
+    cell("Flowlet may move at most", allowance === 0n ? (revoked ? "0, revoked" : "0, not granted") : fmtAmount(allowance), "your ERC-20 allowance to the vault", allowance !== 0n) +
+    cell("Left today", guard.limit === 0n ? "No limit" : fmtAmount(rem), "standing orders, Safety Guard", guard.limit !== 0n) +
+    cell("Emergency reserve", fmtAmount(guard.reserve), "auto-save never goes below");
   let rows = "";
   for (let i = 0; i < n; i++) {
     const o = await call(destRpc, cfg.vault, SEL.getOrder + E.u(i));
     const ord = { payee: addrAt(o, 0), amount: word(o, 1), interval: Number(word(o, 2)), nextDue: Number(word(o, 3)), runs: Number(word(o, 4)), max: Number(word(o, 5)), active: word(o, 7) === 1n };
     const due = ord.nextDue - Math.floor(Date.now() / 1000);
-    rows += `<tr><td><span class="tag peach">⌂</span> #${i}</td><td>${esc(fmtAmount(ord.amount))} tUSD → <code>${esc(short(ord.payee))}</code></td><td>every ${ord.interval}s</td>
+    rows += `<tr><td><span class="tag peach">${IC.home}</span> #${i}</td><td><span class="n">${esc(fmtAmount(ord.amount))}</span> ${TOK} to ${hashChip(isLocal ? null : EXPLORERS[d.destinationChainId], ord.payee, "address")}</td><td>every ${ord.interval}s</td>
       <td>${ord.active ? (due > 0 ? `next in ${due}s` : "due now") : "finished"}</td><td>${ord.runs}${ord.max ? "/" + ord.max : ""} runs</td>
       <td>${ord.active ? `<button class="btn ghost small" data-cancel="${i}">Cancel</button>` : ""}</td></tr>`;
   }
-  $("rules").innerHTML = `<table><tr><th>Rule</th><th>What</th><th>When</th><th>Status</th><th>Progress</th><th></th></tr>${rows}
-    <tr><td><span class="tag mint">❀</span> Auto-save</td><td>${sw.on ? `${sw.bps / 100}% of deposits ≥ ${esc(fmtAmount(sw.min))} → <code>${esc(short(sw.savings))}</code>` : "off"}</td><td>on every deposit</td><td>${sw.on ? "on" : "off"}</td><td></td><td></td></tr></table>`;
+  $("rules").innerHTML = `<table><thead><tr><th scope="col">Rule</th><th scope="col">What</th><th scope="col">When</th><th scope="col">Status</th><th scope="col">Progress</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows}
+    <tr><td><span class="tag mint">${IC.leaf}</span> Auto-save</td><td>${sw.on ? `${sw.bps / 100}% of deposits ≥ <span class="n">${esc(fmtAmount(sw.min))}</span> ${TOK} to ${hashChip(isLocal ? null : EXPLORERS[d.destinationChainId], sw.savings, "address")}` : "Off"}</td><td>on every deposit</td><td>${sw.on ? "On" : "Off"}</td><td></td><td></td></tr></tbody></table>`;
   document.querySelectorAll("[data-cancel]").forEach((b) => (b.onclick = () => { if (confirm(`Cancel standing order #${b.dataset.cancel}?`)) tx.cancel(b.dataset.cancel).catch((e) => log(e.message)); }));
 }
 
 function legHtml(title, cls, body) { return `<div class="leg ${cls}"><b>${esc(title)}</b>${body}</div>`; }
-function hashLink(base, h) { return h ? (base ? `<a class="h" href="${esc(base.tx + h)}" target="_blank" rel="noopener">${esc(short(h))}</a>` : `<span class="h">${esc(short(h))}</span>`) : "–"; }
+const hashLink = (base, h) => hashChip(base, h, "tx");
 const seen = new Set(); let firstTrace = true; let lastTraceHtml = "";
 
 async function refreshTrace() {
   const { rows, state } = await buildTrace(cfg, traceState);
   traceState = state;
-  $("traceStatus").textContent = `● ${rows.length} reactive loop${rows.length === 1 ? "" : "s"} · live`;
+  $("traceStatus").innerHTML = `<span class="dot" aria-hidden="true"></span>${rows.length} reactive loop${rows.length === 1 ? "" : "s"}, live`;
   if (!rows.length) return;
   const fresh = new Set(rows.filter((r) => !seen.has(`${r.nonce}:${r.pending ? 0 : 1}`) && !firstTrace).map((r) => r.nonce));
   const dx = isLocal ? null : EXPLORERS[d.destinationChainId], lx = isLocal ? null : EXPLORERS.lasna;
   const htmls = rows.map((r) => {
     const dec = r.decisions ?? [];
     const okAny = dec.some((x) => x.executed > 0n);
-    const moved = (r.actions ?? []).map((a) => `${esc(fmtAmount(a.amount))} tUSD → ${esc(short(a.to))}`).join("<br/>");
-    const icon = r.kind === 1 ? "⌂" : r.kind === 2 ? "❀" : "◈";
+    const moved = (r.actions ?? []).map((a) => `<span class="n">${esc(fmtAmount(a.amount))}</span> ${TOK} to <code>${esc(short(a.to))}</code>`).join("<br/>");
+    const icon = r.kind === 1 ? IC.home : r.kind === 2 ? IC.leaf : IC.shield;
     return `<article class="trace kind-${Number(r.kind)}${fresh.has(r.nonce) ? " fresh" : ""}" data-key="${esc(`${r.nonce}:${r.pending ? 0 : 1}`)}">
       <div class="trace-head"><span class="title"><span class="glyph" aria-hidden="true">${icon}</span>#${esc(r.nonce)} · ${esc(r.kindLabel)}</span>
         <span class="pill ${r.pending ? "warn" : dec.some((x) => x.reason === 11 || x.reason === 5) ? "bad" : "soft"}">${r.pending ? `<span class="dm" aria-hidden="true">${"<i></i>".repeat(9)}</span> callback in flight…` : esc(dec.map((x) => x.label).join(", "))}</span></div>
@@ -244,7 +278,7 @@ async function refreshTrace() {
       ${dec.map((x) => `<p class="explain">${esc(x.text)}</p>`).join("")}
       <div class="latency">
         ${r.latency ? `<span class="badge">origin → Lasna ${esc(r.latency.originToReactive ?? "–")}s</span><span class="badge">Lasna → callback ${esc(r.latency.reactiveToCallback)}s</span><span class="badge">end-to-end ${esc(r.latency.total ?? "–")}s</span>` : ""}
-        ${r.callback ? (r.callback.viaProxy && !r.callback.sentByWallet ? `<span class="badge proof">✓ sent by Reactive's callback proxy, not by you or this page</span>` : `<span class="badge warn">callback sender not verified</span>`) : ""}
+        ${r.callback ? (r.callback.viaProxy && !r.callback.sentByWallet ? `<span class="badge proof">${IC.check}Sent by Reactive's callback proxy, not by you or this page</span>` : `<span class="badge warn">callback sender not verified</span>`) : ""}
       </div>
     </article>`;
   });
@@ -265,9 +299,10 @@ async function refreshTrace() {
 }
 
 // ------------------------------------------------------------------- wiring
-const addr = (a, name) => { if (!isAddr(a)) throw new Error(`${name} must be a 0x address with 40 hex characters.`); };
-const amt = (x, name, positive = false) => { if (!/^\d+(\.\d{1,6})?$/.test(String(x).trim()) || (positive && !(Number(x) > 0))) throw new Error(`${name} must be a ${positive ? "positive " : ""}number with at most 6 decimals.`); };
-const int = (x, name, min) => { if (!/^\d+$/.test(String(x).trim()) || Number(x) < min) throw new Error(`${name} must be a whole number ≥ ${min}.`); };
+const fieldErr = (field, msg) => Object.assign(new Error(msg), { field });
+const addr = (a, name, field) => { if (!isAddr(a)) throw fieldErr(field, `${name} must be a 0x address with 40 hex characters.`); };
+const amt = (x, name, positive = false, field) => { if (!/^\d+(\.\d{1,6})?$/.test(String(x).trim()) || (positive && !(Number(x) > 0))) throw fieldErr(field, `${name} must be a ${positive ? "positive " : ""}number with at most 6 decimals.`); };
+const int = (x, name, min, field) => { if (!/^\d+$/.test(String(x).trim()) || Number(x) < min) throw fieldErr(field, `${name} must be a whole number ≥ ${min}.`); };
 const TRUST = {
   funds: `<p class="muted">Non-custodial by design: your tUSD stays in your wallet. The vault holds only an ERC-20 allowance you set, and pulls with transferFrom(owner → payee) when a rule fires.</p>
     <div class="tgrid">
@@ -284,18 +319,28 @@ function openTrust(kind) { $("trustTitle").textContent = kind === "privacy" ? "W
 function bindForms() {
   $("trustBtn").onclick = () => openTrust("funds"); $("privacyBtn").onclick = () => openTrust("privacy");
   $("trustClose").onclick = () => $("trust").close(); $("trust").addEventListener("click", (e) => { if (e.target === $("trust")) $("trust").close(); });
-  const f = (id, fn) => ($(id).onsubmit = (e) => { e.preventDefault(); fn(Object.fromEntries(new FormData(e.target))).catch((err) => log(err.message)); });
-  f("fOrder", async (v) => { addr(v.payee, "Pay to"); amt(v.amount, "Amount", true); int(v.interval, "Every", 1); int(v.runs, "Times", 0); return tx.order(v.payee.trim(), units(v.amount), Number(v.interval), Number(v.runs)); });
-  f("fSave", async (v) => { addr(v.savings, "Savings address"); amt(v.min, "Minimum deposit"); const pct = Number(v.pct); if (!(pct > 0 && pct <= 100)) throw new Error("Save (%) must be between 0 and 100."); return tx.save(v.savings.trim(), units(v.min), Math.round(pct * 100), true); });
-  f("fGuard", async (v) => { amt(v.limit, "Daily limit"); amt(v.reserve, "Emergency reserve"); return tx.guard(units(v.limit), units(v.reserve)); });
-  f("fMint", async (v) => { amt(v.amount, "Amount", true); return tx.mint(units(v.amount)); });
+  // Errors appear inline next to the form (and the field gets aria-invalid + focus), not only in the log.
+  const f = (id, fn) => ($(id).onsubmit = (e) => {
+    e.preventDefault();
+    const form = e.target; const out = form.querySelector(".ferr"); const btn = e.submitter || form.querySelector("button:not([type=button])");
+    out.hidden = true; out.textContent = "";
+    if (btn) { btn.disabled = true; btn.setAttribute("aria-busy", "true"); }
+    fn(Object.fromEntries(new FormData(form))).then(() => announce("Saved on-chain")).catch((err) => {
+      log(err.message); out.textContent = err.message; out.hidden = false;
+      const inp = err.field && form.elements[err.field]; if (inp) { inp.setAttribute("aria-invalid", "true"); inp.focus(); }
+    }).finally(() => { if (btn) { btn.disabled = false; btn.removeAttribute("aria-busy"); } });
+  });
+  f("fOrder", async (v) => { addr(v.payee, "Pay to", "payee"); amt(v.amount, "Amount", true, "amount"); int(v.interval, "Every", 1, "interval"); int(v.runs, "Times", 0, "runs"); return tx.order(v.payee.trim(), units(v.amount), Number(v.interval), Number(v.runs)); });
+  f("fSave", async (v) => { addr(v.savings, "Savings address", "savings"); amt(v.min, "Minimum deposit", false, "min"); const pct = Number(v.pct); if (!(pct > 0 && pct <= 100)) throw fieldErr("pct", "Save (%) must be between 0 and 100."); return tx.save(v.savings.trim(), units(v.min), Math.round(pct * 100), true); });
+  f("fGuard", async (v) => { amt(v.limit, "Daily limit", false, "limit"); amt(v.reserve, "Emergency reserve", false, "reserve"); return tx.guard(units(v.limit), units(v.reserve)); });
+  f("fMint", async (v) => { amt(v.amount, "Amount", true, "amount"); return tx.mint(units(v.amount)); });
   $("saveOff").onclick = () => tx.save("0x0000000000000000000000000000000000000000", 0, 0, false).catch((e) => log(e.message));
   $("pauseBtn").onclick = () => { if (confirm("Pause every Flowlet rule? Nothing will move until you resume.")) tx.pause().catch((e) => log(e.message)); };
   $("resumeBtn").onclick = () => tx.resume().catch((e) => log(e.message));
   $("revokeBtn").onclick = () => { if (confirm("Revoke Flowlet's access? The reactive contract will pause itself and every rule.")) tx.approve(0n).catch((e) => log(e.message)); };
   $("approveBtn").onclick = () => tx.approve(2000n * 10n ** 6n).catch((e) => log(e.message));
   $("runDemo").onclick = runDemo;
-  $("connectBtn").onclick = async () => { const [a] = await ethereum.request({ method: "eth_requestAccounts" }); $("connectBtn").textContent = short(a); };
+  $("connectBtn").onclick = async () => { const [a] = await ethereum.request({ method: "eth_requestAccounts" }); $("connectBtn").innerHTML = `<code>${esc(short(a))}</code>`; };
   document.querySelectorAll(".mini input").forEach((i) => i.addEventListener("input", () => i.removeAttribute("aria-invalid")));
 }
 
@@ -306,4 +351,4 @@ async function tick() {
 
 renderSteps();
 bindForms();
-loadConfig().then(tick).catch((e) => { $("netPill").textContent = "Not deployed"; $("netPill").className = "pill bad"; log(e.message); $("runDemo").disabled = true; });
+loadConfig().then(tick).catch((e) => { $("netPill").textContent = "Not deployed"; $("netPill").className = "chains bad"; log(e.message); $("runDemo").disabled = true; });

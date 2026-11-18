@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 <header class="top">
   <a class="brand" href="#" aria-label="Flowlet">
@@ -25,56 +26,55 @@
     <a href="#proof">Live proof</a><a href="#guard">Safety Guard</a><a href="#funds">Funds</a><a href="#rules-card">Rules</a>
   </nav>
   <div class="top-actions">
-    <span id="netPill" class="pill">Loading…</span>
+    <span id="netPill" class="chains" aria-label="Networks">Loading…</span>
     <button id="connectBtn" class="btn ghost small" hidden>Connect wallet</button>
   </div>
 </header>
 
-<main>
+<main id="main" tabindex="-1">
   <section class="hero">
     <div class="hero-text">
-      <span class="eyebrow"><span class="live-dot"></span>Reactive Network · Testnet</span>
-      <h1>Your wallet,<br /><span class="grad">on autopilot.</span></h1>
+      <span class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Runs on Reactive Network testnet</span>
+      <h1>Your wallet,<br /><span class="accent">on autopilot.</span></h1>
       <p class="lead">Pay rent on schedule, save a slice of every paycheck, and stop everything the moment you revoke access.
         A <b>reactive contract</b> watches the chain and acts for you. No bots, no servers, and your money never leaves your wallet until a rule fires.</p>
       <div class="rail" aria-hidden="true">
-        <div class="node"><span class="ic">◎</span><b>Your wallet</b><small>events</small></div>
+        <div class="node"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5V7a2 2 0 0 1 2-2h10"/><rect x="4" y="7.5" width="16" height="11.5" rx="2.5"/><path d="M15.5 13.25h1.5"/></svg></span><b>Your wallet</b><small>events</small></div>
         <div class="wire"><i></i><i></i><i></i></div>
-        <div class="node brain"><span class="ic">✦</span><b>Reactive brain</b><small>Lasna</small></div>
+        <div class="node brain"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.2"/><circle cx="5.5" cy="7" r="1.6"/><circle cx="18.5" cy="7" r="1.6"/><circle cx="12" cy="19.5" r="1.6"/><path d="M7 8l3.3 2.6M17 8l-3.3 2.6M12 14.2v3.7"/></svg></span><b>Reactive brain</b><small>Lasna</small></div>
         <div class="wire"><i></i><i></i><i></i></div>
-        <div class="node"><span class="ic">⇢</span><b>Vault rules</b><small>callback</small></div>
+        <div class="node"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2.5"/><circle cx="12" cy="12" r="3"/><path d="M12 9v-.5M15 12h.5M12 15v.5M9 12h-.5"/></svg></span><b>Vault rules</b><small>callback</small></div>
       </div>
     </div>
     <div class="demo-box">
-      <div class="demo-head"><span class="eyebrow">One-click rehearsal</span><span id="demoCount" class="mono muted">10 steps</span></div>
-      <button id="runDemo" class="btn big"><span class="play" aria-hidden="true">▶</span> RUN DEMO</button>
+      <div class="demo-head"><h2 class="h3">See it run, start to finish</h2><span id="demoCount" class="mono muted">10 steps</span></div>
+      <button id="runDemo" class="btn big"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.2 5.1A.8.8 0 0 0 8 5.8z"/></svg>Run demo</button>
+      <p class="small muted demo-note">Uses throwaway test money. About two minutes on testnet.</p>
       <ol id="demoSteps" class="steps"></ol>
     </div>
   </section>
 
-  <section class="stats" id="stats" aria-live="polite"></section>
+  <section class="stats" id="stats" aria-label="Balances"></section>
+  <div id="srStatus" class="sr-only" role="status" aria-live="polite"></div>
 
   <section class="card" id="proof">
     <div class="section-head">
       <div>
-        <span class="eyebrow">Verifiable, end to end</span>
-        <h2>Live Reactive Proof</h2>
+        <h2>Live Reactive proof</h2>
         <p class="muted">Every row is rebuilt from on-chain logs: origin event → reactive transaction on Lasna → callback
           through Reactive's callback proxy → rule evaluation → token transfer. No button in this page moves funds.</p>
       </div>
       <span id="traceStatus" class="pill soft">waiting</span>
     </div>
-    <div id="timeline" class="timeline"><p class="empty"><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>No reactive activity yet. Press <b>RUN DEMO</b> or create a rule.</p></div>
+    <div id="timeline" class="timeline"><p class="empty"><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>No reactive activity yet. Press <b>Run demo</b> to watch a rule fire, or create one under Your rules.</p></div>
   </section>
 
   <div class="grid2">
     <section class="card">
-      <span class="eyebrow">Subscriptions</span>
-      <h2>Reactive brain <small class="muted">· Lasna</small></h2>
+      <h2>Reactive brain <small class="muted">on Lasna</small></h2>
       <ul id="subs" class="subs"></ul>
     </section>
     <section class="card" id="guard">
-      <span class="eyebrow">Circuit breaker</span>
       <h2>Safety Guard</h2>
       <div id="guardBox"></div>
     </section>
@@ -82,18 +82,18 @@
 
   <section class="card funds" id="funds">
     <div class="section-head">
-      <div><span class="eyebrow">Security &amp; funds</span><h2>Funds &amp; permissions</h2><p class="muted">Flowlet doesn't hold your money. It holds your rules. Know exactly what the automation can touch.</p></div>
-      <button type="button" class="btn ghost small" id="trustBtn">How your funds are protected →</button>
+      <div><h2>Funds and permissions</h2><p class="muted">Flowlet doesn't hold your money. It holds your rules. Know exactly what the automation can touch.</p></div>
+      <button type="button" class="btn ghost small" id="trustBtn">How your funds are protected</button>
     </div>
     <div class="fund-grid" id="fundGrid"></div>
     <div class="grid2 tight">
       <ul class="perms">
-        <li class="yes"><span class="pm">✓</span>Pays only the payees and savings address you set</li>
-        <li class="yes"><span class="pm">✓</span>Moves money only on a callback from your reactive contract via Reactive's proxy</li>
-        <li class="yes"><span class="pm">✓</span>Standing orders stop at the daily limit (the guard trips instead of overspending)</li>
-        <li class="yes"><span class="pm">✓</span>Auto-save never takes your wallet below the emergency reserve</li>
-        <li class="no"><span class="pm">✕</span>Cannot add rules, change payees or raise limits (owner only)</li>
-        <li class="no"><span class="pm">✕</span>Never holds your tokens or your keys</li>
+        <li class="yes"><span class="pm" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Pays only the payees and savings address you set</li>
+        <li class="yes"><span class="pm" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Moves money only on a callback from your reactive contract via Reactive's proxy</li>
+        <li class="yes"><span class="pm" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Standing orders stop at the daily limit (the guard trips instead of overspending)</li>
+        <li class="yes"><span class="pm" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Auto-save never takes your wallet below the emergency reserve</li>
+        <li class="no"><span class="pm" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span>Cannot add rules, change payees or raise limits (owner only)</li>
+        <li class="no"><span class="pm" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span>Never holds your tokens or your keys</li>
       </ul>
       <div class="recovery">
         <b>Recovery path</b>
@@ -106,34 +106,36 @@
   </section>
 
   <dialog id="trust" class="modal" aria-labelledby="trustTitle">
-    <div class="section-head"><div><span class="eyebrow">Security &amp; funds</span><h2 id="trustTitle">How your funds are protected</h2></div><button type="button" class="btn ghost small" id="trustClose">Close</button></div>
+    <div class="section-head"><div><h2 id="trustTitle">How your funds are protected</h2></div><button type="button" class="btn ghost small" id="trustClose">Close</button></div>
     <div id="trustBody"></div>
   </dialog>
 
   <section class="card" id="rules-card">
-    <span class="eyebrow">Standing orders &amp; auto-save</span>
     <h2>Your rules</h2>
+    <p class="muted">Standing orders and auto-save. Each one runs only when your reactive contract calls back.</p>
     <div id="rules" class="table-wrap"></div>
     <details class="manage">
       <summary>Manage rules</summary>
       <div class="forms">
         <form id="fOrder" class="mini">
-          <h3><span class="tag peach">⌂</span> Standing order</h3>
-          <label>Pay to<input name="payee" value="0x1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d" class="mono" maxlength="42" autocomplete="off" /></label>
+          <h3><span class="tag peach"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 11L12 4.5l7.5 6.5"/><path d="M6.5 9.5V19h11V9.5"/></svg></span> Standing order</h3>
+          <label>Pay to<input name="payee" value="0x1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d" class="mono" maxlength="42" autocomplete="off" spellcheck="false" /></label>
           <label>Amount (tUSD)<input name="amount" value="25" inputmode="decimal" /></label>
           <label>Every (seconds)<input name="interval" value="60" inputmode="numeric" /></label>
           <label>Times (0 = forever)<input name="runs" value="3" inputmode="numeric" /></label>
           <button class="btn">Create</button>
+          <p class="ferr" role="alert" hidden></p>
         </form>
         <form id="fSave" class="mini">
-          <h3><span class="tag mint">❀</span> Auto-save</h3>
-          <label>Savings address<input name="savings" value="0x5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e" class="mono" maxlength="42" autocomplete="off" /></label>
+          <h3><span class="tag mint"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14z"/><path d="M5 19l7-7"/></svg></span> Auto-save</h3>
+          <label>Savings address<input name="savings" value="0x5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e" class="mono" maxlength="42" autocomplete="off" spellcheck="false" /></label>
           <label>Deposits of at least (tUSD)<input name="min" value="100" inputmode="decimal" /></label>
           <label>Save (%)<input name="pct" value="20" inputmode="decimal" /></label>
           <div class="row"><button class="btn">Turn on</button><button type="button" class="btn ghost" id="saveOff">Turn off</button></div>
+          <p class="ferr" role="alert" hidden></p>
         </form>
         <form id="fGuard" class="mini">
-          <h3><span class="tag rose">◈</span> Safety Guard</h3>
+          <h3><span class="tag rose"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z"/><path d="M12 8v5M12 16h.01"/></svg></span> Safety Guard</h3>
           <label>Daily limit for payments (tUSD, 0 = none)<input name="limit" value="500" inputmode="decimal" /></label>
           <label>Emergency reserve (tUSD)<input name="reserve" value="0" inputmode="decimal" /></label>
           <button class="btn">Save</button>
@@ -141,22 +143,23 @@
             <button type="button" class="btn ghost" id="pauseBtn">Pause all</button>
             <button type="button" class="btn ghost" id="resumeBtn">Resume</button>
             <button type="button" class="btn danger" id="revokeBtn">Revoke access</button>
-            <button type="button" class="btn ghost" id="approveBtn">Approve 2,000</button>
+            <button type="button" class="btn ghost" id="approveBtn">Allow 2,000 tUSD</button>
           </div>
+          <p class="ferr" role="alert" hidden></p>
         </form>
         <form id="fMint" class="mini">
-          <h3><span class="tag sky">$</span> Test money</h3>
+          <h3><span class="tag sky"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h6M9 14h6"/></svg></span> Test money</h3>
           <label>Amount (tUSD)<input name="amount" value="1000" inputmode="decimal" /></label>
           <button class="btn">Receive a deposit</button>
+          <p class="ferr" role="alert" hidden></p>
         </form>
       </div>
     </details>
   </section>
 
   <section class="card">
-    <span class="eyebrow">Console</span>
     <h2>Activity log</h2>
-    <div id="log" class="log" aria-live="polite"></div>
+    <div id="log" class="log" role="log" aria-live="off" tabindex="0" aria-label="Activity log"></div>
   </section>
 
   <footer id="footer" class="muted"></footer>
