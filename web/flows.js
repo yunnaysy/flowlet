@@ -87,13 +87,19 @@ function lastRun(a) {
   return { html: `<span class="ev ${a.kind === 3 ? "warn" : ok ? "ok" : "bad"}">${esc(label)}</span> <span class="muted">· ${esc(ago(r.callback.ts))}</span>`, r };
 }
 
-// ------------------------------------------------------------------ Home: metrics + My automations preview
+// ------------------------------------------------------------------ Home: greeting, colour cards + My automations preview
+function paintGreet() {
+  const hr = new Date().getHours(), d = $("gDay"), w = $("gWho"); if (!d || !w) return;
+  d.textContent = hr < 5 ? "Evening" : hr < 12 ? "Morning" : hr < 18 ? "Afternoon" : "Evening";
+  const a = wallet?.account; w.textContent = a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "there";
+}
 function paintHome() {
   const m = $("homeMetrics"), body = $("homeFlowsBody"); if (!m || !body) return;
   const list = automations();
   if (!list) {
     const slow = Date.now() - loadedAt > 20000;
-    m.innerHTML = ["Active flows", "Executions", "Allowance"].map((t) => `<div class="metric"><small>${t}</small><b class="sk">—</b></div>`).join("");
+    m.innerHTML = ["Active flows", "Executions", "Allowance"].map((t, i) => `<div class="kcard ${["green hero-k", "violet", "sky"][i]} sk-card"><span class="kc-l">${t}</span><b class="kc-n sk">—</b></div>`).join("");
+    paintGreet();
     body.innerHTML = slow ? `<div class="empty-box err" role="alert"><b>Couldn't read the vault yet</b><p class="small muted">The testnet RPC may be slow. Flowlet keeps retrying every few seconds.</p><button type="button" class="btn ghost small" id="hfReload">Reload</button></div>` : `<div class="skel-rows" aria-label="Loading"><i></i><i></i></div>`;
     $("hfReload")?.addEventListener("click", () => location.reload());
     return;
@@ -101,10 +107,13 @@ function paintHome() {
   const active = list.filter((a) => a.kind !== 3 && a.status === "Active").length;
   const live = rows.filter((r) => r.callback && executed(r)).length;
   const rec = !rows.length && recorded ? recorded.rows.filter((r) => r.callback && (r.decisions || []).some((d) => BigInt(d.executed || 0) > 0n)).length : null;
-  m.innerHTML = `
-    <div class="metric mint"><span class="m-ic" aria-hidden="true">${I.bolt}</span><small>Active flows</small><b>${active}</b><span class="m-sub">${rules.revoked ? "access revoked" : rules.paused ? "all paused" : `of ${list.length - 1} automations`}</span></div>
-    <div class="metric sky"><span class="m-ic" aria-hidden="true">${I.check}</span><small>Executions</small><b>${rec != null ? rec : live}</b><span class="m-sub">${rec != null ? "recorded loops" : "completed loops"}</span></div>
-    <div class="metric lilac"><span class="m-ic" aria-hidden="true">${I.shield}</span><small>Allowance</small><b>${esc(rules.allowance)}</b><span class="m-sub">tUSD the vault may move</span></div>`;
+  const kc = (tone, o, label, value, sub) => `<div class="kcard ${tone}" role="listitem"><span class="kc-l">${label}</span><b class="kc-n">${value}</b><span class="kc-s">${sub}</span><img class="kc-obj" src="3d/f-${o}.webp" alt="" aria-hidden="true" width="512" height="512" decoding="async"></div>`;
+  m.setAttribute("role", "list");
+  m.innerHTML = kc("green hero-k", "bubbles", "Active flows", active, rules.revoked ? "Access revoked · nothing can move" : rules.paused ? "All rules paused" : `of ${list.length - 1} automations`)
+    + kc("violet", "bolt", "Executions", rec != null ? rec : live, rec != null ? "recorded loops" : "completed loops")
+    + kc("sky", "loop", "Allowance", esc(rules.allowance), "tUSD the vault may move")
+    + kc("mint", "nodes", "Chains", "2", "Sepolia + Reactive Lasna");
+  paintGreet();
   const shown = list.filter((a) => a.status !== "Finished").slice(0, 3);
   body.innerHTML = `<ul class="auto-mini">${shown.map((a) => `<li><a href="#/flows?id=${a.id}" class="am-row"><span class="tag ${a.tone}" aria-hidden="true">${a.icon}</span><span class="am-txt"><b>${esc(a.name)}</b><small>${esc(a.trigger)}</small></span><span class="pill ${pillCls(a.status)}">${esc(a.status)}</span><span class="am-go" aria-hidden="true">${I.chev}</span></a></li>`).join("")}</ul>`;
 }
@@ -295,7 +304,7 @@ function openCreate() {
 function paintAll() { paintHome(); paintFlows(); paintActivity(); }
 function route() { const m = location.hash.match(/^#\/flows\?(?:.*&)?id=([\w-]+)/); if (m && rules) openDetail(m[1]); }
 window.addEventListener("flowlet:config", (e) => { conf = e.detail; if (!conf.isLocal) fetch("recorded-loops.json").then((r) => (r.ok ? r.json() : null)).then((j) => { recorded = j; paintAll(); }).catch(() => {}); paintAll(); });
-window.addEventListener("flowlet:wallet", (e) => { wallet = e.detail; });
+window.addEventListener("flowlet:wallet", (e) => { wallet = e.detail; paintGreet(); });
 let first = true;
 window.addEventListener("flowlet:rules", (e) => { rules = e.detail; paintHome(); paintFlows(); if (first) { first = false; route(); } });
 window.addEventListener("flowlet:state", (e) => { st = e.detail; });

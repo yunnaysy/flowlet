@@ -10,7 +10,7 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 
 | | |
 |---|---|
-| ![Home: status, metrics, my automations](docs/img/v2-mobile-home-local.png) | ![Automation lifecycle timeline](docs/img/v2-mobile-timeline.png) |
+| ![Home: status, metrics, my automations](docs/img/v3-mobile-home-local.png) | ![Automation lifecycle timeline](docs/img/v3-mobile-timeline.png) |
 
 **Demo video:** [docs/video/flowlet-demo.mp4](docs/video/flowlet-demo.mp4) (2:16, English voiceover (edge-tts neural voice) and burned-in captions, recorded from the redesigned live site in no-wallet, read-only mode).
 
@@ -59,12 +59,12 @@ White-first redesign (Nov 2026): a bubble mark, four tabs (Home · Flows · Acti
 
 | Phone | Phone | Phone | Phone |
 |---|---|---|---|
-| ![Home](docs/img/v2-mobile-home.png) Home (live, read-only) | ![Flows](docs/img/v2-mobile-flows.png) Flows: View / Create / Edit / Pause | ![Detail](docs/img/v2-mobile-detail-adv.png) Automation detail with Advanced | ![Activity](docs/img/v2-mobile-activity.png) Activity filters |
-| ![Timeline](docs/img/v2-mobile-timeline.png) Event detected → Trigger verified → Callback sent → Execution confirmed | ![Create](docs/img/v2-mobile-create-1.png) Guided Create | ![Activated](docs/img/v2-create-done.png) Activated (local rehearsal) | ![Settings](docs/img/v2-mobile-settings.png) Settings: Wallet / Automation / Preferences / About |
+| ![Home](docs/img/v3-mobile-home.png) Home (live, read-only) | ![Flows](docs/img/v3-mobile-flows.png) Flows: View / Create / Edit / Pause | ![Detail](docs/img/v3-mobile-detail-adv.png) Automation detail with Advanced | ![Activity](docs/img/v3-mobile-activity.png) Activity filters |
+| ![Timeline](docs/img/v3-mobile-timeline.png) Event detected → Trigger verified → Callback sent → Execution confirmed | ![Create](docs/img/v3-mobile-create-1.png) Guided Create | ![Activated](docs/img/v3-create-done.png) Activated (local rehearsal) | ![Settings](docs/img/v3-mobile-settings.png) Settings: Wallet / Automation / Preferences / About |
 
 | Desktop | Desktop | Tablet |
 |---|---|---|
-| ![Desktop home](docs/img/v2-desktop-home.png) Home | ![Desktop flows](docs/img/v2-desktop-flows.png) Flows | ![Tablet](docs/img/v2-tablet-home.png) |
+| ![Desktop home](docs/img/v3-desktop-home.png) Home | ![Desktop flows](docs/img/v3-desktop-flows.png) Flows | ![Tablet](docs/img/v3-tablet-home.png) |
 
 Icon: ![Icons](docs/img/icons-homescreen-mockup.png)
 

@@ -174,3 +174,62 @@ The brief: look like a modern iOS fintech app, not a neon Web3 dashboard. What c
 - **Run demo loop in five numbered steps.** Fund & allow, Set your rules, Reactive subscribes, Salary event, Reactive executes, ending in the three transaction links. It runs live only for the vault owner or the local rehearsal; otherwise the button reads "Replay recorded loop" and plays back real recorded transactions.
 - **Mode badge.** `DEMO MODE` / `LIVE TESTNET` / `LOCAL REHEARSAL`, the same documented status-label caps exception as Kindly. The rest of the line is sentence case.
 - **Glossary.** Loop, Reactive Lasna, Vault rules, Safety Guard and Allowance, as dotted-underlined buttons that open a short sheet.
+
+## v3: the user's reference style (Nov 2026)
+
+The user rejected the "restrained premium" pass and sent three reference images. v3 follows them closely.
+
+- **Greeting:** a big two-line greeting ("Morning" in bold, then "there" or the short wallet address in a lighter weight) and one helper line.
+- **Colour cards:**
+  - flat cards (radius 28) with a 3D object each:
+    - brand green #066A4F: Active flows, with bubbles
+    - violet #6050EE: Executions, with a bolt
+    - sky #A8D4FF: Allowance, with a loop and gear
+    - mint #A8E6CE: Chains, with connected nodes
+  - The numbers are real: they are read from the vault, or from the recorded loops in demo mode, and the revoked and paused states still show on the first card.
+  - Contrast:
+    - White text only on green (6.6:1) and violet (5.4:1).
+    - Dark ink on sky and mint (over 11:1).
+- **Layout:**
+  - On phones the cards sit in a snap carousel. From 1024 px they become a 4-column row under the greeting.
+  - The status card stays first in the content, as a white card. Paused or revoked now shows as a thin tinted ring instead of a pink fill, while the orb and the copy still carry the state.
+- **Shortcuts bento:** Demo loop (big mint tile), Full trace (sky) and Funds & permissions (violet).
+- **Pills:**
+  - "View all" in grey next to semibold section titles
+  - pill filter chips with the active one filled black
+  - the Watching, Triggered and Executed track as pills
+- **Tab bar on phones:**
+  - white, with the active icon in brand green and a small orange tab above it (reference 1)
+  - labels visually hidden but kept as the accessible name
+  - The desktop sidebar is white, with a soft green pill on the active item.
+- **Welcome:**
+  - a centred floating composition of the four 3D objects
+  - a heavy title with a lighter second line
+  - the three entry paths as white cards, with Connect as a black pill
+  - "Not now · go to the control center" as a text link
+- **Unchanged:** the four tabs, the information architecture, the honesty and mode labels, the proof sheets, and every flow.
+
+### What we took from each source (Meng To's design-skills list)
+
+Nothing below is vendored into the app. We read the skills, applied the ideas by hand, and ran one tool locally.
+
+- **Impeccable** (pbakaus/impeccable, Apache-2.0):
+  - We ran its browser anti-pattern detector (`detect-antipatterns-browser.js`, `impeccableDetectAsync()`) locally against Welcome, Home and the demo at 390 and 1440 px. It is a test-time tool only and is not shipped.
+  - It found two things, both fixed:
+    - the 10.4 px "tUSD8" token label, now at least 11 px
+    - the tiny "01 / 02 / 03" numbered section labels, now colour tiles with a 3D object
+  - From its checklist we also avoided: purple gradients (cards use flat fills), zero-offset glow halos (we use colour shadows offset downward), uppercase kicker labels above headings, grey text on coloured fills, bounce easing, and thin borders paired with wide shadows.
+- **Emil Kowalski's skills** (MIT), for motion:
+  - ease-out curves, 150 to 250 ms for UI and up to 600 ms only for the one-time entrance of the 3D composition
+  - press feedback with `scale(.98)`
+  - no animation from `scale(0)`
+  - everything gated behind `prefers-reduced-motion: no-preference`
+- **MengTo/skills** (MIT):
+  - the "reference first" workflow: match the user's three reference images closely, with type scale, card radius, colour blocking and object placement taken from the references rather than invented
+- **Stageshow** (benjitaylor/skills, no licence file in the repo, so ideas only and nothing copied):
+  - bento grids of mixed tile sizes (the Shortcuts block)
+  - composing README, OG and video stills around the hero cards
+- **open-design** (nexu-io/open-design, Apache-2.0, ideas only):
+  - pairing one heavy display weight with a light secondary line
+- **solid-glass** (deeplethe/solid-glass, MIT, nothing vendored):
+  - the bottom bar and sheets stay solid and opaque instead of translucent glass, so the text on them keeps AA contrast

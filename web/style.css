@@ -125,7 +125,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 8px 24px 60px }
 .dots { display: grid; grid-template-columns: repeat(3, 6px); gap: 4px } .dots i { width: 6px; height: 6px; border-radius: 2px; background: var(--lilac); opacity: .15; animation: dm 1.4s steps(1) infinite }
 .dots i:nth-child(1) { animation-delay: 0s } .dots i:nth-child(2) { animation-delay: .15s } .dots i:nth-child(3) { animation-delay: .3s } .dots i:nth-child(6) { animation-delay: .45s } .dots i:nth-child(9) { animation-delay: .6s } .dots i:nth-child(8) { animation-delay: .75s } .dots i:nth-child(7) { animation-delay: .9s } .dots i:nth-child(4) { animation-delay: 1.05s } .dots i:nth-child(5) { background: var(--mint); animation-delay: 1.2s }
 .trace { position: relative; border-radius: 20px; padding: 18px 20px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden }
-.trace::before { content: ""; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; border-radius: 0 3px 3px 0; background: var(--k, var(--line-2)) }
+/* v3: the per-kind side stripe was removed (Impeccable side-tab). */
 .kind-1 { --k: var(--sky) } .kind-2 { --k: var(--mint) } .kind-3 { --k: var(--rose) }
 .trace-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap }
 .trace-head .title { font: 600 17px var(--f-display); letter-spacing: -.01em; display: flex; align-items: center; gap: 10px }

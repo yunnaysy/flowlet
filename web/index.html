@@ -77,6 +77,11 @@
 
 <main id="main" tabindex="-1" class="dash">
   <h1 class="sr-only" id="tabH1" hidden>Flowlet</h1>
+  <section class="greet" id="greet" data-tabs="home" aria-label="Greeting">
+    <p class="greet-h"><b id="gDay">Hello</b><span id="gWho">there</span></p>
+    <p class="greet-sub" id="gSub">Your automations run on Reactive Network, even while you're offline.</p>
+  </section>
+  <section class="metrics carousel" id="homeMetrics" data-tabs="home" aria-label="At a glance" tabindex="0"></section>
   <section class="card status-card" id="autoStatus" data-tabs="home demo" aria-labelledby="asTitle">
     <div class="as-head">
       <span class="as-orb" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5M12 20.5A8.5 8.5 0 0 1 3.5 12"/></svg></span>
@@ -93,10 +98,11 @@
   </section>
 
   <!-- Welcome: the story and the three ways in. Home itself is a control center. -->
-  <section class="welcome" id="welcome" data-tabs="welcome" aria-labelledby="wTitle">
+  <section class="welcome onboard" id="welcome" data-tabs="welcome" aria-labelledby="wTitle">
+    <div class="orbit" aria-hidden="true"><img class="obj3d o-main" src="3d/f-bubbles.webp" alt="" width="512" height="512" decoding="async"><img class="obj3d o-1" src="3d/f-bolt.webp" alt="" width="512" height="512" decoding="async"><img class="obj3d o-2" src="3d/f-nodes.webp" alt="" width="512" height="512" decoding="async"><img class="obj3d o-3" src="3d/f-loop.webp" alt="" width="512" height="512" decoding="async"></div>
     <div class="hero-text">
       <span class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Runs on Reactive Network testnet</span>
-      <h1 id="wTitle">Your wallet. Your rules.<br /><span class="accent">Automatic execution.</span></h1>
+      <h1 id="wTitle">Your wallet. Your rules.<br /><span class="light">Automatic execution.</span></h1>
       <p class="lead">Set an on-chain condition once. Reactive Network watches for the event and triggers your rule automatically, without a bot running 24/7.</p>
       <ol class="rail" aria-label="How a rule runs">
         <li class="node"><span class="ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5V7a2 2 0 0 1 2-2h10"/><rect x="4" y="7.5" width="16" height="11.5" rx="2.5"/><path d="M15.5 13.25h1.5"/></svg></span><b>Event</b><small>a deposit or a due time on Sepolia</small></li>
@@ -111,16 +117,20 @@
       <li class="path"><span class="path-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.2 5.1A.8.8 0 0 0 8 5.8z"/></svg></span><span class="path-txt"><b>Explore demo without wallet</b><small>A guided replay of real, recorded testnet transactions.</small></span><button type="button" class="btn ghost" id="wDemo">Start</button></li>
       <li class="path"><span class="path-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/> <path d="M14 2v4a2 2 0 0 0 2 2h4"/> <path d="M10 9H8"/> <path d="M16 13H8"/> <path d="M16 17H8"/></svg></span><span class="path-txt"><b>Watch the 2-minute walkthrough</b><small>A captioned video of the demo loop, recorded on the live site.</small></span><a class="btn ghost" href="https://github.com/yunnaysy/flowlet/blob/main/docs/video/flowlet-demo.mp4" target="_blank" rel="noopener">Watch<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/> <path d="M10 14 21 3"/> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></li>
     </ul>
-    <p class="small muted w-skip"><a href="#/home" id="wSkip">Go to the control center</a></p>
+    <p class="w-skip"><a href="#/home" id="wSkip" class="text-link">Not now · go to the control center</a></p>
   </section>
 
-  <section class="metrics" id="homeMetrics" data-tabs="home" aria-label="At a glance"></section>
-  <section class="card" id="homeFlows" data-tabs="home" aria-labelledby="hfTitle"><div class="section-head"><h2 id="hfTitle" class="h3">My automations</h2><a class="small" href="#/flows">See all</a></div><div id="homeFlowsBody"><p class="muted small">Reading the vault…</p></div></section>
+  <section class="card" id="homeFlows" data-tabs="home" aria-labelledby="hfTitle"><div class="section-head"><h2 id="hfTitle" class="h3">My automations</h2><a class="view-all" href="#/flows">View all</a></div><div id="homeFlowsBody"><p class="muted small">Reading the vault…</p></div></section>
   <section class="card cc-last" id="lastCard" data-tabs="home" aria-labelledby="lcTitle">
       <div class="section-head"><h2 id="lcTitle" class="h3">Recent execution</h2><span id="lcWhen" class="small muted"></span></div>
       <div id="lastBody"><p class="muted small">Reading the on-chain trace…</p></div>
     </section>
-  <a class="card tile" id="demoTile" href="#/demo" data-tabs="home"><span class="tile-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M8 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.2 5.1A.8.8 0 0 0 8 5.8z"/></svg></span><span class="tile-txt"><b>Run demo loop</b><small>Five steps, ending in a real reactive loop. No wallet needed for the replay.</small></span><span class="tile-go" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span></a>
+  <section class="bento-wrap" data-tabs="home" aria-labelledby="bentoH"><div class="sec-row"><h2 id="bentoH">Shortcuts</h2></div>
+    <div class="bento">
+      <a class="bento-t mint big" id="demoTile" href="#/demo"><b>Demo loop</b><small>Watch one automation run, step by step</small><img class="bt-obj" src="3d/f-nodes.webp" alt="" aria-hidden="true" width="512" height="512" decoding="async"></a>
+      <a class="bento-t sky" href="#/activity"><b>Full trace</b><small>Every loop, every transaction</small><img class="bt-obj" src="3d/f-loop.webp" alt="" aria-hidden="true" width="512" height="512" decoding="async"></a>
+      <a class="bento-t violet" href="#/settings"><b>Funds &amp; permissions</b><small>What the vault may move</small></a>
+    </div></section>
 
   <section class="card demo-box" id="demoBox" data-tabs="demo" aria-labelledby="dbTitle">
     <div class="demo-head"><h2 class="h3" id="dbTitle">Run demo loop</h2><span id="demoCount" class="mono muted">5 steps</span></div>

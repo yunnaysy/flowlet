@@ -468,3 +468,124 @@ dl.kv dt { color: var(--muted); } dl.kv dd { margin: 0; overflow-wrap: anywhere;
   main.dash[data-tab=home] > #demoTile { grid-column: 2; grid-row: 3; margin-top: 0; }
   main.dash[data-tab=settings] > #stats { grid-column: 2; }
 }
+
+/* ===== v3 (Nov 2026): the user's reference style. Bold colour cards with 3D clay objects, a big greeting,
+   pill chips, a white tab bar with a small indicator, black pill buttons. See docs/DESIGN_NOTES.md "v3". ===== */
+:root { --bg: #FAFBFA; --f-green: #066A4F; --f-mint: #A8E6CE; --f-sky: #A8D4FF; --f-violet: #6050EE; --f-orange: #E8590C;
+  --sh-soft: 0 1px 3px rgba(15,23,32,.04), 0 10px 30px rgba(15,23,32,.06); }
+body { background: var(--bg) }
+.card { border: 0; box-shadow: var(--sh-soft); border-radius: 26px }
+.btn.ghost { background: #fff; border: 1px solid rgba(15,23,32,.12) }
+.btn:active, .bento-t:active, .kcard:active { transform: scale(.98) }
+.text-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 600; color: var(--muted); text-decoration: none }
+.text-link:hover { color: var(--text); text-decoration: none }
+/* Greeting */
+.greet { display: grid; gap: 8px; margin: 8px 0 2px }
+.greet-h { display: grid; margin: 0; font: 400 clamp(36px, 8vw, 48px)/1.04 var(--f-display); letter-spacing: -.03em; color: var(--text) }
+.greet-h b { font-weight: 800 } .greet-h span { font-weight: 500; color: #3A4651 }
+.greet-sub { margin: 0; color: var(--muted); font-size: 15px; max-width: 46ch }
+.sec-row, .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px }
+.sec-row { margin: 18px 2px 12px } .sec-row h2 { font: 700 20px/1.2 var(--f-display); letter-spacing: -.02em; margin: 0 }
+.section-head h2.h3 { font: 700 20px/1.2 var(--f-display); letter-spacing: -.02em }
+.view-all { color: var(--muted); font-weight: 500; font-size: 14.5px; min-height: 44px; display: inline-flex; align-items: center }
+.view-all:hover { color: var(--text); text-decoration: none }
+/* Colour carousel */
+.metrics.carousel { display: flex; gap: 14px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; padding: 4px 16px 34px; margin: 8px -16px -14px; scrollbar-width: none; grid-template-columns: none }
+.metrics.carousel::-webkit-scrollbar { display: none }
+.kcard { position: relative; isolation: isolate; flex: 0 0 min(62%, 232px); min-height: 190px; border-radius: 28px; padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 6px; scroll-snap-align: start; color: #fff; background: var(--f-green) }
+.kcard.hero-k { flex-basis: min(80%, 300px) }
+.kcard.green { background: var(--f-green); box-shadow: 0 18px 32px -16px rgba(6,106,79,.6) }
+.kcard.violet { background: var(--f-violet); box-shadow: 0 18px 32px -16px rgba(96,80,238,.6) }
+.kcard.sky { background: var(--f-sky); color: var(--text); box-shadow: 0 18px 32px -16px rgba(60,130,220,.45) }
+.kcard.mint { background: var(--f-mint); color: var(--text); box-shadow: 0 18px 32px -16px rgba(6,106,79,.35) }
+.kc-l { font: 500 14px/1.2 var(--f-ui) }
+.kc-n { font: 800 46px/1 var(--f-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; margin-top: 6px }
+.kc-s { margin-top: auto; font-size: 13px; line-height: 1.35; max-width: 58% }
+.kc-obj { position: absolute; right: -16px; bottom: -26px; width: 132px; height: 132px; pointer-events: none; filter: drop-shadow(0 14px 14px rgba(15,23,32,.22)) }
+.kcard > :not(.kc-obj) { position: relative; z-index: 1 }
+.kcard .sk { opacity: .7 }
+@media (min-width: 1024px) {
+  .metrics.carousel { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: visible; margin: 8px 0 0; padding: 4px 0 26px }
+  .kcard.hero-k { flex-basis: auto }
+}
+/* Bento shortcuts */
+.bento { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 12px }
+.bento-t { position: relative; overflow: hidden; display: grid; align-content: start; gap: 4px; min-height: 120px; padding: 16px 16px 18px; border-radius: 24px; color: var(--text); text-decoration: none; transition: transform .15s var(--ease) }
+.bento-t:hover { text-decoration: none }
+.bento-t.big { grid-row: span 2; min-height: 252px }
+.bento-t b { font: 700 18px/1.2 var(--f-display); letter-spacing: -.02em } .bento-t small { font-size: 13px; line-height: 1.35; max-width: 92% }
+.bento-t.mint { background: var(--f-mint) } .bento-t.sky { background: var(--f-sky) } .bento-t.violet { background: var(--f-violet); color: #fff }
+.bt-obj { position: absolute; pointer-events: none; filter: drop-shadow(0 10px 12px rgba(15,23,32,.18)) }
+.bento-t.big .bt-obj { width: 170px; height: 170px; right: -14px; bottom: -14px }
+.bento-t:not(.big) .bt-obj { width: 84px; height: 84px; right: -4px; bottom: -8px } .bento-t:not(.big) small { max-width: 64% }
+/* Status card: white, the state carried by the orb and a soft tint. */
+.status-card { border-radius: 28px }
+body.auto-revoked .status-card { background: #fff; box-shadow: 0 0 0 1px rgba(176,42,71,.16), var(--sh-soft) }
+body.auto-paused .status-card { background: #fff; box-shadow: 0 0 0 1px rgba(154,78,23,.2), var(--sh-soft) }
+.as-track li { border-radius: 999px; background: #fff; border-color: rgba(15,23,32,.1) }
+.as-track li.now { background: var(--text); color: #fff; border-color: var(--text) } .as-track li.now .as-dot { background: #fff; border-color: #fff }
+/* Filter chips: pill rows, the active one filled black. */
+.segf { background: none; padding: 0; gap: 8px; border-radius: 0 }
+.segf button { border-radius: 999px; background: #fff; border: 1px solid rgba(15,23,32,.12); min-height: 44px; color: var(--text) }
+.segf button[aria-pressed=true] { background: var(--text); border-color: var(--text); color: #fff; box-shadow: 0 10px 20px -10px rgba(15,23,32,.6) }
+/* Pastel pill tags */
+.pill { border-radius: 999px }
+/* Mode badge: one quiet pill */
+.mode { border-radius: 999px; border: 0; width: auto; max-width: calc(100% - 32px); margin: 10px auto 0; justify-content: center; padding: 6px 14px }
+/* Onboarding */
+.welcome.onboard { display: grid; justify-items: center; text-align: center; gap: 18px; grid-template-columns: 1fr }
+.welcome.onboard .hero-text { display: grid; justify-items: center; gap: 14px; max-width: 600px }
+.welcome.onboard h1 { font: 800 clamp(36px, 7vw, 56px)/1.04 var(--f-display); letter-spacing: -.03em }
+.welcome.onboard h1 .light { font-weight: 500; color: #3A4651 }
+.welcome.onboard .lead { color: var(--muted); max-width: 46ch; font-size: 16px }
+.welcome.onboard .rail { display: none }
+.welcome.onboard .paths { width: 100%; max-width: 460px; display: grid; gap: 10px; text-align: left; margin: 0 auto }
+.welcome.onboard .path { background: #fff; border: 0; border-radius: 22px; box-shadow: var(--sh-soft) }
+.welcome.onboard #wConnect { background: var(--text); color: #fff }
+.welcome.onboard .eyebrow { padding: 6px 12px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px rgba(15,23,32,.08) }
+.orbit { position: relative; width: 300px; aspect-ratio: 1.15; margin: 0 auto -6px }
+.orbit .obj3d { position: absolute; height: auto; filter: drop-shadow(0 18px 20px rgba(15,23,32,.16)) }
+.orbit .o-main { width: 50%; left: 25%; top: 18%; }
+.orbit .o-1 { width: 24%; left: 3%; top: 6%; transform: rotate(-12deg) }
+.orbit .o-2 { width: 28%; right: 2%; top: 4%; }
+.orbit .o-3 { width: 26%; right: 8%; bottom: 0; transform: rotate(-8deg) }
+@media (min-width: 1024px) { .orbit { width: 360px } }
+@media (prefers-reduced-motion: no-preference) {
+  .orbit .obj3d { animation: floatIn 600ms var(--ease) both } .orbit .o-1 { animation-delay: 60ms } .orbit .o-2 { animation-delay: 120ms } .orbit .o-3 { animation-delay: 180ms }
+  .kcard { animation: floatIn 320ms var(--ease) both } .kcard:nth-child(2) { animation-delay: 50ms } .kcard:nth-child(3) { animation-delay: 100ms } .kcard:nth-child(4) { animation-delay: 150ms }
+}
+@keyframes floatIn { from { opacity: 0; translate: 0 14px } to { opacity: 1; translate: 0 0 } }
+/* Tab bar on phones: white, the active icon in brand green with a small orange tab above it. */
+@media (max-width: 640px) {
+  .side { background: rgba(255,255,255,.96); border-top: 0; box-shadow: 0 -8px 30px rgba(15,23,32,.06); border-radius: 24px 24px 0 0 }
+  #tabs a span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+  #tabs a { position: relative; color: #66717C }
+  #tabs a .i { width: 25px; height: 25px; stroke-width: 1.7 }
+  #tabs a.active { color: var(--f-green) } #tabs a.active .i { color: var(--f-green); stroke-width: 2 }
+  #tabs a.active::before { content: ""; position: absolute; top: 0; left: 50%; width: 22px; height: 6px; margin-left: -11px; border-radius: 0 0 8px 8px; background: var(--f-orange) }
+  .brand-m .logo, .top .brand-m { border-radius: 14px }
+}
+@media (min-width: 641px) {
+  .side { background: #fff }
+  #tabs a.active { background: #E8F4EE; border-color: transparent; color: var(--f-green) }
+}
+/* v3 desktop home: greeting and the colour cards span the row; status + recent on the left, automations + shortcuts on the right. */
+@media (min-width: 1024px) {
+  main.dash[data-tab=home] > #greet { grid-column: 1 / -1; grid-row: 1; margin-top: 20px }
+  main.dash[data-tab=home] > #homeMetrics { grid-column: 1 / -1; grid-row: 2; margin-top: 4px }
+  main.dash[data-tab=home] > #autoStatus { grid-column: 1; grid-row: 3; margin-top: 0 }
+  main.dash[data-tab=home] > #homeFlows { grid-column: 2; grid-row: 3 / span 2; margin-top: 0 }
+  main.dash[data-tab=home] > #lastCard { grid-column: 1; grid-row: 4 }
+  main.dash[data-tab=home] > .bento-wrap { grid-column: 2; grid-row: 5 }
+  .kc-s { max-width: 62% }
+}
+/* v3 Activity (Impeccable audit): no side stripe on traces, legs are flat tinted panels (not cards in a card), token labels at least 11px. */
+
+.leg { border: 0; box-shadow: none; background: #F3F5F4; border-radius: 12px }
+.leg.ok { border: 0; background: #E6F4EE }
+.tok { font-size: max(11px, .82em) }
+#proof .timeline .trace { border: 0; border-radius: 0; background: none; padding: 18px 0; overflow: visible }
+#proof .timeline .trace + .trace { border-top: 1px solid var(--line) }
+.leg.wait, .leg.note { border: 0 } .leg.wait { background: #FBF0E6 } .leg.note { background: #EFEDFD }
+.recovery { border: 0; border-radius: 0; background: none; padding: 14px 0 0; border-top: 1px solid var(--line) }
+.fund-grid > div { border-radius: 0; background: none } .fund-grid { background: #F3F5F4; border: 0 }
