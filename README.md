@@ -8,11 +8,13 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 
 **Live app:** [https://flowlet-kappa.vercel.app](https://flowlet-kappa.vercel.app) · no sign-up, no email, no password: a wallet, or no wallet at all for the replay.
 
-| | |
-|---|---|
-| ![Home: status, metrics, my automations](docs/img/v3-mobile-home-local.png) | ![Automation lifecycle timeline](docs/img/v3-mobile-timeline.png) |
+| Welcome | Home (live testnet) | Desktop |
+|---|---|---|
+| ![Welcome: floating 3D objects, big title, black pill Connect](docs/img/v3-mobile-welcome.png) | ![Home: greeting, colour cards, automation is live](docs/img/v3-mobile-home.png) | ![Desktop home on the live testnet vault](docs/img/v3-desktop-home-live.png) |
 
-**Demo video:** [docs/video/flowlet-demo.mp4](docs/video/flowlet-demo.mp4) (2:16, English voiceover (edge-tts neural voice) and burned-in captions, recorded from the redesigned live site in no-wallet, read-only mode).
+**Demo video (2:16):** [![Flowlet demo video poster: click to play](docs/video/flowlet-demo-poster.png)](docs/video/flowlet-demo.mp4)
+
+[docs/video/flowlet-demo.mp4](docs/video/flowlet-demo.mp4) (4.3 MB). English voiceover (edge-tts neural voice) and burned-in captions, recorded from the v3 live site in no-wallet, read-only mode. The video was recorded while the public vault was still revoked, so it shows that state.
 
 Design system: [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) · Security, custody & privacy: [docs/SECURITY.md](docs/SECURITY.md) · Pitch: [docs/PITCH.md](docs/PITCH.md)
 
@@ -37,15 +39,15 @@ Every loop leaves three transactions you can open: the **origin** on Sepolia, th
 
 The local rehearsal (`?net=local`, two Anvil chains plus a stand-in relayer) is labelled `LOCAL REHEARSAL · private test chains on this computer · not real data`.
 
-**Current state of the public demo vault:** access is revoked (allowance 0, loop #5), so the live Home shows "Access revoked · automation stopped" and offers **Review access**. That is the Safety Guard working, not an outage. Restarting needs the owner to allow the vault again and resume.
+**Current state of the public demo vault (Nov 19, 2026):** active again. After loop #5 (the Safety Guard revoke), the owner re-approved a 2,000 tUSD allowance ([0x378e3ba6…](https://sepolia.etherscan.io/tx/0x378e3ba6ded52db445ec0c5833e913c021cd5257449abeb3e6abaf8f4e1b703e)) and called `resume()` ([0x68c15db6…](https://sepolia.etherscan.io/tx/0x68c15db6068afed32b537978919c0413f75a5b37a701395d7dd1ab74acbd3d8b)). The reactive contract on Lasna mirrored it: `paused=false`, watching deposits again. The live Home shows "Your automation is live", with Auto-save active and the Safety Guard watching. The standing order from the demo finished its 3 runs, so no CRON is subscribed right now. All of this is testnet only, with test tokens.
 
 ## 60-second demo
 
 1. **0:00 · Open** [flowlet-kappa.vercel.app](https://flowlet-kappa.vercel.app). The welcome screen shows Event → Reactive → Action. Choose **Explore demo without wallet**.
-2. **0:10 · Home is a control center:** the automation state, "What rule is running?" (When / Then / Guard / Network), and "Last automation".
+2. **0:10 · Home is a control center:** a greeting, colour cards (active flows, executions, allowance, chains), the automation state (Watching → Triggered → Executed), My automations and the last execution.
 3. **0:15 · Replay recorded loop** (the "Run demo loop" card; without the owner wallet it replays) walks five steps: Fund & allow → Set your rules → Reactive subscribes → Salary event → Reactive executes. The last step lists the three transactions of a real loop.
 4. **0:35 · View execution proof:** origin, Lasna and callback links, plus the contract state before → after (runs, next due time, balances, or vault running → paused).
-5. **0:50 · Pause vs revoke:** pausing stops every rule and Reactive drops its subscriptions, but the allowance stays. Revoking (allowance 0) makes Reactive pause itself and the vault. The live vault is in that revoked state right now.
+5. **0:50 · Pause vs revoke:** pausing stops every rule and Reactive drops its subscriptions, but the allowance stays. Revoking (allowance 0) makes Reactive pause itself and the vault. Loop #5 in the table below is that revoke; the vault was resumed afterwards.
 
 ## Installable on phones (PWA)
 
@@ -55,11 +57,17 @@ Flowlet looks and feels like a native app on a phone, without an APK. Open https
 - **Offline:** the shell loads offline; automation state is never cached.
 - **Fonts:** Cabinet Grotesk + Switzer from Fontshare (self-hosted, not committed per their license) and Geist Mono. Fetch them once with `bash scripts/fetch-fonts.sh web/fonts cabinet-grotesk@500 cabinet-grotesk@700 cabinet-grotesk@800 switzer@400 switzer@500 switzer@600`.
 
-White-first redesign (Nov 2026): a bubble mark, four tabs (Home · Flows · Activity · Settings), a Basic view with an Advanced section for contracts, chains and hashes, and a guided Create flow that marks unsupported triggers "Coming soon".
+**v3 design (Nov 2026):**
+- **Look:** a big two-line greeting and bold colour cards (brand green, violet, sky, mint), each with a glossy 3D object. There is also a Shortcuts bento, pill filter chips, and a white tab bar with a small active indicator.
+- **Onboarding:** floating 3D objects and a black pill **Connect**.
+- **Structure:** four tabs (Home · Flows · Activity · Settings), a Basic view with an Advanced section for contracts, chains and hashes, and a guided Create flow.
+- **Coming soon:** unsupported triggers (price and whale alerts) are marked "Coming soon" and cannot be activated.
+- **Accessibility:** axe-core reports 0 WCAG A/AA violations on the live site at 390, 820 and 1440 px.
+- **Design notes:** see [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md). The 3D objects are generated renders made for this project ([docs/brand/3d](docs/brand/3d/README.md)).
 
 | Phone | Phone | Phone | Phone |
 |---|---|---|---|
-| ![Home](docs/img/v3-mobile-home.png) Home (live, read-only) | ![Flows](docs/img/v3-mobile-flows.png) Flows: View / Create / Edit / Pause | ![Detail](docs/img/v3-mobile-detail-adv.png) Automation detail with Advanced | ![Activity](docs/img/v3-mobile-activity.png) Activity filters |
+| ![Home](docs/img/v3-mobile-home.png) Home (live testnet, read-only, vault active) | ![Flows](docs/img/v3-mobile-flows.png) Flows: View / Create / Edit / Pause | ![Detail](docs/img/v3-mobile-detail-adv.png) Automation detail with Advanced | ![Activity](docs/img/v3-mobile-activity.png) Activity filters |
 | ![Timeline](docs/img/v3-mobile-timeline.png) Event detected → Trigger verified → Callback sent → Execution confirmed | ![Create](docs/img/v3-mobile-create-1.png) Guided Create | ![Activated](docs/img/v3-create-done.png) Activated (local rehearsal) | ![Settings](docs/img/v3-mobile-settings.png) Settings: Wallet / Automation / Preferences / About |
 
 | Desktop | Desktop | Tablet |
