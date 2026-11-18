@@ -11,8 +11,8 @@
   --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 20px 50px rgba(0,0,0,.35);
   /* Emil Kowalski's curves: strong ease-out for UI, ease-in-out for on-screen movement. */
   --ease: cubic-bezier(.23,1,.32,1); --ease-io: cubic-bezier(.77,0,.175,1);
-  --f-display: "Bricolage Grotesque", "Geist", ui-sans-serif, system-ui, sans-serif;
-  --f-ui: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-display: "Cabinet Grotesk", "Switzer", ui-sans-serif, system-ui, sans-serif;
+  --f-ui: "Switzer", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   color-scheme: dark;
 }
@@ -113,7 +113,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 8px 24px 60px }
 .stat { position: relative; background: var(--surface); border-radius: 20px; padding: 18px 20px; border: 1px solid var(--line); overflow: hidden; transition: border-color .25s, transform .25s var(--ease) }
 .stat:hover { transform: translateY(-2px); border-color: var(--line-2) }
 .stat::before { content: ""; position: absolute; left: 20px; right: 20px; top: 0; height: 2px; border-radius: 2px; background: var(--c, var(--line-2)); opacity: .9 }
-.stat .k { color: var(--muted); font-size: 13px; font-weight: 500 } .stat .v { font: 600 32px/1.15 var(--f-display); letter-spacing: -.03em; margin: 4px 0 2px; font-variant-numeric: tabular-nums } .stat .s { font-size: 12.5px; color: var(--dim) }
+.stat .k { color: var(--muted); font-size: 13px; font-weight: 500 } .stat .v { font: 600 32px/1.15 var(--f-ui); letter-spacing: -.03em; margin: 4px 0 2px; font-variant-numeric: tabular-nums } .stat .s { font-size: 12.5px; color: var(--dim) }
 .stat.mint { --c: var(--mint) } .stat.peach { --c: var(--peach) } .stat.sky { --c: var(--sky) } .stat.lilac { --c: var(--lilac) } .stat.rose { --c: var(--rose) } .stat.rose .v { color: var(--rose) }
 .stat.bump .v { animation: bump .6s var(--ease) }
 @keyframes bump { 30% { color: var(--mint); transform: translateY(-2px) } }
@@ -187,7 +187,7 @@ footer { font-size: 13px; text-align: center; margin-top: 28px; line-height: 1.8
 /* trust: funds panel, modal */
 .fund-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line-2); border-radius: 18px; overflow: hidden; margin: 18px 0 }
 .fund-grid > div { display: grid; gap: 2px; padding: 14px 16px; background: rgba(10,14,19,.45) } .fund-grid > div + div { border-left: 1px solid var(--line) }
-.fund-grid small { color: var(--muted); font-size: 12.5px } .fund-grid b { font: 600 22px/1.25 var(--f-display); letter-spacing: -.02em } .fund-grid .small { font-size: 12px; color: var(--dim) }
+.fund-grid small { color: var(--muted); font-size: 12.5px } .fund-grid b { font: 600 22px/1.25 var(--f-ui); font-variant-numeric: tabular-nums; letter-spacing: -.02em } .fund-grid .small { font-size: 12px; color: var(--dim) }
 .grid2.tight { gap: 16px; align-items: start }
 .perms { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-size: 14px } .perms li { display: flex; gap: 10px; align-items: flex-start }
 .perms .pm { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none; margin-top: 1px } .perms .yes .pm { background: var(--mint-soft); color: var(--mint) } .perms .no .pm { background: var(--line); color: var(--muted) }

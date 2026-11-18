@@ -7,3 +7,5 @@ broadcast/
 DEPLOYER_SECRET.txt
 node_modules/
 deployments/local*
+web/fonts/cabinet-grotesk-*.woff2
+web/fonts/switzer-*.woff2

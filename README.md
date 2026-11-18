@@ -20,6 +20,22 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 
 Design system: [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) · Security, custody & privacy: [docs/SECURITY.md](docs/SECURITY.md)
 
+## Installable on phones (PWA)
+
+Flowlet looks and feels like a native app on a phone, without an APK. Open https://flowlet-kappa.vercel.app on your phone and **Add to Home Screen** (iOS: Share → Add to Home Screen; Android: the install prompt or ⋮ → Install app). It opens full screen with a bottom tab bar (Status · Timeline · Proof · Settings) and a live **automation status card**: "Your automation is live · Waiting for trigger…", then Triggered and Executed as real reactive loops land. Desktop gets a sidebar (collapsible to an icon rail) and a two-column Status dashboard; tablet gets an icon rail.
+
+- **Wallet on a phone:** Connect offers **Open in MetaMask**. **Replay the last real loop** needs no wallet and links every real transaction.
+- **Offline:** the shell loads offline; automation state is never cached.
+- **Fonts:** Cabinet Grotesk + Switzer from Fontshare (self-hosted, not committed per their license) and Geist Mono. Fetch them once with `bash scripts/fetch-fonts.sh web/fonts cabinet-grotesk@500 cabinet-grotesk@700 cabinet-grotesk@800 switzer@400 switzer@500 switzer@600`.
+
+| Phone | Phone | Phone | Phone |
+|---|---|---|---|
+| ![Live](docs/img/mobile-status-live.png) | ![Triggered](docs/img/mobile-status-triggered.png) | ![Executed](docs/img/mobile-status-executed.png) | ![Timeline](docs/img/mobile-timeline.png) |
+
+| Desktop | Tablet |
+|---|---|
+| ![Desktop status](docs/img/desktop-status.png) | ![Tablet](docs/img/tablet-status.png) |
+
 ## What it does
 
 | Rule | Trigger (watched by the reactive contract) | What happens on the destination chain |
@@ -89,7 +105,7 @@ Safety on the destination:
 | `src/FlowletVault.sol` | Callback contract on the destination chain (rules, Safety Guard, `Decision` trace events) |
 | `src/MockUSD.sol` | Testnet stablecoin (tUSD) with an open faucet |
 | `test/Flowlet.t.sol` | 21 Foundry tests: full-loop simulation, circuit breaker, daily limit, reserve override, security, fuzzing |
-| `web/` | Dashboard (`index.html`, `app.js`, `style.css`) and the shared trace builder `trace.js` |
+| `web/` | Dashboard (`index.html`, `app.js`, `style.css`), the app shell (`shell.js`, `app-shell.css`, `sw.js`, `manifest.webmanifest`, `icons/`, `fonts/`) and the shared trace builder `trace.js` |
 | `scripts/deploy.sh` | Deploys and wires everything, writes `deployments/<net>.json` |
 | `scripts/demo.sh` | The Run demo story from the command line |
 | `scripts/report.mjs` | Full-loop evidence table (Markdown) from RPC data only |

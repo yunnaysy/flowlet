@@ -1,6 +1,8 @@
 import { buildTrace, makeRpc, EXPLORERS, REASON, fmtAmount } from "./trace.js";
 
 const $ = (id) => document.getElementById(id);
+const emit = (name, detail) => window.dispatchEvent(new CustomEvent(`flowlet:${name}`, { detail }));
+
 const params = new URLSearchParams(location.search);
 const NET = params.get("net") ?? "eth-sepolia";
 let cfg, d, destRpc, lasnaRpc, traceState, isLocal;
@@ -79,6 +81,9 @@ async function loadConfig() {
   $("connectBtn").hidden = isLocal;
   const dx = isLocal ? null : EXPLORERS[d.destinationChainId], lx = isLocal ? null : EXPLORERS.lasna;
   const a = (base, addr) => hashChip(base, addr, "address");
+  const contractsHtml = `<span>Vault ${a(dx, cfg.vault)}</span><span>Reactive contract ${a(lx, cfg.reactive)}</span><span>${TOK} ${a(dx, cfg.token)}</span><span>Callback proxy ${a(dx, cfg.callbackProxy)}</span>`;
+  if ($("contracts")) $("contracts").innerHTML = contractsHtml;
+  emit("config", { isLocal, destChainId: d.destinationChainId, destName, owner: cfg.wallet, explorers: { dest: dx, lasna: lx } });
   $("footer").innerHTML = `<span>Vault ${a(dx, cfg.vault)}</span><span>Reactive contract ${a(lx, cfg.reactive)}</span><span>${TOK} ${a(dx, cfg.token)}</span><span>Callback proxy ${a(dx, cfg.callbackProxy)}</span><p>Flowlet is open source. Testnet only.</p>`;
 }
 
@@ -155,6 +160,9 @@ function renderSteps(state = {}) {
   }).join("");
 }
 async function runDemo() {
+  // On the public site the demo signs from the vault owner's wallet. Without any wallet, offer the no-wallet paths instead of an error.
+  if (!isLocal && !window.ethereum) return emit("nowallet", { reason: "demo" });
+  emit("demo", { running: true });
   const btn = $("runDemo"); btn.disabled = true; btn.classList.remove("done"); btn.classList.add("running"); btn.setAttribute("aria-busy", "true"); btn.innerHTML = `<span class="spin" aria-hidden="true"></span>Running… watch the proof below`;
   document.body.classList.add("demo-running");
   const state = {}; const ctx = {};
@@ -166,12 +174,12 @@ async function runDemo() {
       $("demoCount").textContent = `${i + 1} of ${DEMO.length}`; announce(`Step ${i + 1} of ${DEMO.length} done: ${DEMO[i][0]}`);
     }
     btn.classList.remove("running"); btn.classList.add("done"); btn.removeAttribute("aria-busy"); document.body.classList.remove("demo-running");
-    btn.innerHTML = `${IC.check}Demo complete. The rules ran on their own.`; announce("Demo complete.");
+    btn.innerHTML = `${IC.check}Demo complete. The rules ran on their own.`; announce("Demo complete."); emit("demo", { running: false, done: true });
     log("Demo complete. Every transfer above was executed by a Reactive callback, not by this page.");
   } catch (e) {
     const i = Object.keys(state).find((k) => state[k] === "run"); if (i != null) state[i] = "err"; renderSteps(state);
     log("demo stopped: " + e.message); btn.classList.remove("running"); btn.removeAttribute("aria-busy"); document.body.classList.remove("demo-running"); btn.innerHTML = `${IC.play}Run demo`; btn.disabled = false;
-    announce(`Demo stopped: ${e.message}`);
+    announce(`Demo stopped: ${e.message}`); emit("demo", { running: false, error: e.message });
   }
 }
 
@@ -212,6 +220,7 @@ async function refreshState() {
     stat("Rent paid", fmtAmount(paid), "paid to the landlord", "peach", true) +
     stat("Flowlet allowance", allowance !== 0n ? fmtAmount(allowance) : revoked ? "Revoked" : "None", allowance !== 0n ? "it may still move" : revoked ? "nothing can move" : "no access granted yet", allowance === 0n && revoked ? "rose" : "lilac", allowance !== 0n));
 
+  emit("state", { paused: guard.paused || rPaused, revoked, reason: REASON[guard.reason] ?? "", cron, dep, orders: n, sweepOn: sw.on, allowance: allowance.toString(), nonce });
   const sub = (name, on, desc) => `<li><span><b>${esc(name)}</b><br/><small>${esc(desc)}</small></span><span class="switch ${on ? "on" : ""}" role="img" aria-label="${on ? "on" : "off"}"></span></li>`;
   $("subs").innerHTML =
     sub("Vault rules", true, "Mirrors every rule from the vault's own events") +
@@ -246,6 +255,7 @@ async function refreshState() {
   }
   $("rules").innerHTML = `<table><thead><tr><th scope="col">Rule</th><th scope="col">What</th><th scope="col">When</th><th scope="col">Status</th><th scope="col">Progress</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows}
     <tr><td><span class="tag mint">${IC.leaf}</span> Auto-save</td><td>${sw.on ? `${sw.bps / 100}% of deposits ≥ <span class="n">${esc(fmtAmount(sw.min))}</span> ${TOK} to ${hashChip(isLocal ? null : EXPLORERS[d.destinationChainId], sw.savings, "address")}` : "Off"}</td><td>on every deposit</td><td>${sw.on ? "On" : "Off"}</td><td></td><td></td></tr></tbody></table>`;
+  { const hs = ["Rule", "What", "When", "Status", "Progress", ""]; $("rules").querySelectorAll("tbody tr").forEach((tr) => [...tr.children].forEach((td, i) => hs[i] && td.setAttribute("data-label", hs[i]))); }
   document.querySelectorAll("[data-cancel]").forEach((b) => (b.onclick = () => { if (confirm(`Cancel standing order #${b.dataset.cancel}?`)) tx.cancel(b.dataset.cancel).catch((e) => log(e.message)); }));
 }
 
@@ -256,6 +266,7 @@ const seen = new Set(); let firstTrace = true; let lastTraceHtml = "";
 async function refreshTrace() {
   const { rows, state } = await buildTrace(cfg, traceState);
   traceState = state;
+  emit("trace", { rows: rows.map((r) => ({ nonce: r.nonce, kind: Number(r.kind), kindLabel: r.kindLabel, pending: !!r.pending, origin: r.origin ? { label: r.origin.label, tx: r.origin.tx, ts: r.origin.ts } : null, reactive: r.reactive ? { tx: r.reactive.tx, ts: r.reactive.ts } : null, callback: r.callback ? { tx: r.callback.tx, ts: r.callback.ts, viaProxy: r.callback.viaProxy } : null, decisions: (r.decisions ?? []).map((x) => ({ label: x.label, executed: String(x.executed ?? 0), reason: x.reason })), actions: (r.actions ?? []).map((a) => ({ amount: fmtAmount(a.amount), to: a.to })) })) });
   $("traceStatus").innerHTML = `<span class="dot" aria-hidden="true"></span>${rows.length} reactive loop${rows.length === 1 ? "" : "s"}, live`;
   if (!rows.length) return;
   const fresh = new Set(rows.filter((r) => !seen.has(`${r.nonce}:${r.pending ? 0 : 1}`) && !firstTrace).map((r) => r.nonce));
@@ -340,7 +351,6 @@ function bindForms() {
   $("revokeBtn").onclick = () => { if (confirm("Revoke Flowlet's access? The reactive contract will pause itself and every rule.")) tx.approve(0n).catch((e) => log(e.message)); };
   $("approveBtn").onclick = () => tx.approve(2000n * 10n ** 6n).catch((e) => log(e.message));
   $("runDemo").onclick = runDemo;
-  $("connectBtn").onclick = async () => { const [a] = await ethereum.request({ method: "eth_requestAccounts" }); $("connectBtn").innerHTML = `<code>${esc(short(a))}</code>`; };
   document.querySelectorAll(".mini input").forEach((i) => i.addEventListener("input", () => i.removeAttribute("aria-invalid")));
 }
 

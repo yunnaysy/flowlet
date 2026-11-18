@@ -1,0 +1,220 @@
+/* ==========================================================================
+   Flowlet app shell ("Night current"): sidebar ≥1024, icon rail 641–1023, bottom tab bar ≤640.
+   Motion: ease-out 150–250ms, one-shot only. No gradient text, no emoji, no looping decoration.
+   ========================================================================== */
+:root { --side-w: 240px; --rail-w: 92px; --tab-h: 60px;
+  --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); --sar: env(safe-area-inset-right, 0px); }
+html { -webkit-tap-highlight-color: transparent; scroll-padding-top: 76px }
+html, body { overflow-x: clip }
+body { overscroll-behavior-y: contain }
+.tab-hidden { display: none !important }
+.shell { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); min-height: 100vh; min-height: 100dvh }
+.main-col { min-width: 0 }
+.main-col main { max-width: 1240px; padding-top: 8px }
+
+/* sidebar */
+.side { position: sticky; top: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; gap: 28px; padding: calc(20px + var(--sat)) 14px 20px calc(14px + var(--sal)); border-right: 1px solid var(--line); background: rgba(10,14,19,.55); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 12 }
+.side .brand { padding: 2px 8px }
+#tabs { display: grid; gap: 4px }
+#tabs a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px 12px; border-radius: 12px; color: #B6C2CC; font-size: 14.5px; font-weight: 500; border: 1px solid transparent; transition: color .15s var(--ease), background-color .15s var(--ease), border-color .15s var(--ease) }
+#tabs a:hover { text-decoration: none; color: var(--text); background: var(--line) }
+#tabs a .i { width: 20px; height: 20px }
+#tabs a.active { color: var(--text); background: var(--surface-2); border-color: var(--line-2) }
+#tabs a.active .i { color: var(--mint) }
+#tabs a:active { opacity: .55 }
+.side-foot { margin-top: auto; padding: 14px; border-radius: 16px; border: 1px solid var(--line); background: rgba(17,24,33,.7); font-size: 12.5px; color: var(--muted) } .side-foot p { margin: 0 }
+
+/* top app bar */
+.top { max-width: 1240px; padding: calc(12px + var(--sat)) 24px 12px; flex-wrap: nowrap; min-height: 64px }
+.brand-m { display: none }
+.appbar-title { font: 600 15px/1 var(--f-display); color: var(--muted); margin-right: auto; letter-spacing: -.01em }
+.wallet-pill { gap: 8px } .wallet-pill code { font-size: 12.5px } .wallet-pill.wrong::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--peach); box-shadow: 0 0 0 3px rgba(255,179,138,.2) }
+.btn.primary { background: var(--mint); color: var(--mint-ink) } .btn.primary:hover { box-shadow: 0 10px 30px rgba(91,227,176,.25) }
+.btn.wide { width: 100% }
+.icon-btn { width: 44px; height: 44px; display: inline-grid; place-items: center; border: 0; border-radius: 999px; background: var(--line); color: var(--text); cursor: pointer; flex: none; transition: background-color .15s var(--ease), transform .14s var(--ease) }
+.icon-btn:hover { background: var(--line-2) } .icon-btn:active { transform: scale(.95) }
+.netwarn { max-width: 1192px; margin: 4px 24px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: var(--peach-soft); color: var(--peach); border: 1px solid rgba(255,179,138,.25); padding: 10px 12px 10px 16px; border-radius: 14px; font-size: 14px; font-weight: 500 }
+.netwarn .btn { margin: 0 }
+
+/* demo box extras */
+.replay { width: 100%; margin-top: 10px }
+.sticky-cta { display: block }
+
+/* automation status card */
+.status-card { display: grid; gap: 16px }
+.as-head { display: flex; gap: 14px; align-items: center }
+.as-orb { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; flex: none; background: var(--surface-2); border: 1px solid var(--line-2); color: var(--muted); transition: color .2s var(--ease), background-color .2s var(--ease), border-color .2s var(--ease) }
+.as-orb .i { width: 22px; height: 22px }
+.as-title { font: 600 24px/1.15 var(--f-display); letter-spacing: -.02em; margin: 0 }
+.as-sub { margin: 4px 0 0; font-size: 14.5px } .as-sub a { display: inline-flex; gap: 4px; align-items: center } .as-sub a .i { width: 13px; height: 13px } .as-sub code { font-size: 12.5px }
+.status-card[data-mode=live] .as-orb, .status-card[data-mode=exec] .as-orb { color: var(--mint); background: var(--mint-soft); border-color: rgba(91,227,176,.3) }
+.status-card[data-mode=trig] .as-orb { color: var(--peach); background: var(--peach-soft); border-color: rgba(255,179,138,.3) }
+.status-card[data-mode=paused] .as-orb { color: var(--rose); background: var(--rose-soft); border-color: rgba(255,143,163,.3) }
+.status-card[data-mode=exec] { border-color: rgba(91,227,176,.35) }
+.as-track { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px }
+.as-track li { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(10,14,19,.5); border: 1px solid var(--line); color: var(--dim); font-size: 13.5px; font-weight: 500; transition: color .2s var(--ease), border-color .2s var(--ease), background-color .2s var(--ease) }
+.as-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; flex: none; transition: background-color .2s var(--ease) }
+.as-track li.past { color: var(--muted) } .as-track li.past .as-dot { background: currentColor }
+.as-track li.now { color: var(--text); border-color: var(--line-2); background: var(--surface-2); animation: stepIn 220ms var(--ease) both }
+.as-track li.now .as-dot { background: var(--mint); border-color: var(--mint) }
+.status-card[data-stage=trig] .as-track li.now .as-dot { background: var(--peach); border-color: var(--peach) }
+@keyframes stepIn { from { transform: scale(.96); opacity: .6 } }
+.as-meta { display: flex; gap: 10px 14px; align-items: center; flex-wrap: wrap }
+.contracts { display: grid; gap: 10px; font-size: 14px } .contracts > span { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 14px; background: rgba(10,14,19,.5); border: 1px solid var(--line) }
+.install-box { display: grid; gap: 10px } .install-box p { margin: 0 }
+hr.sep { border: 0; border-top: 1px solid var(--line); margin: 14px 0; width: 100% }
+.sheet-actions { display: grid; gap: 8px; margin-top: 10px }
+.sheet { width: min(480px, calc(100vw - 32px)) } .sheet .section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px }
+.sheet .btn + .btn { margin-top: 0 }
+.grabber { display: none }
+
+/* tabs are peers: no transition on a tab switch (Appllama / Emil) */
+@keyframes sheetUp { from { transform: translateY(24px); opacity: 0 } }
+@keyframes hintIn { from { opacity: 0; transform: translateY(8px) } }
+
+/* install hint + offline */
+.install-hint { position: fixed; z-index: 45; left: 12px; right: 12px; bottom: calc(var(--tab-h) + var(--sab) + 12px); display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 10px 8px 10px 12px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 18px; box-shadow: var(--shadow); animation: hintIn 250ms var(--ease) both }
+.install-hint b { display: block; font-size: 14px } .install-hint small { color: var(--muted); font-size: 12.5px } .install-hint .btn { margin: 0 }
+.install-hint .ih-ic { width: 36px; height: 36px; border-radius: 10px; background: var(--mint-soft); color: var(--mint); display: grid; place-items: center }
+.offline { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: calc(24px + var(--sat)) 20px calc(24px + var(--sab)); background: var(--bg) }
+.offline-card { max-width: 420px; display: grid; gap: 12px; justify-items: start } .offline-card h2 { margin: 6px 0 0 } .offline-card p { margin: 0 }
+@media (min-width: 641px) { .install-hint { display: none } }
+
+/* desktop status: live status + demo | timeline + proof, two columns */
+@media (min-width: 1280px) {
+  main.dash[data-tab=status] { display: grid; grid-template-columns: minmax(0, 1fr) 400px; column-gap: 24px; align-items: start }
+  main.dash[data-tab=status] > * { grid-column: 1 }
+  main.dash[data-tab=status] > .hero { grid-column: 1 / -1; padding-top: 16px }
+  main.dash[data-tab=status] > #stats { grid-column: 2; grid-row: 2 / span 2; grid-template-columns: 1fr 1fr; margin-top: 20px; align-self: start }
+  main.dash[data-tab=status] > #brainGuard { grid-column: 2; grid-row: 4 / span 2; grid-template-columns: 1fr; margin-top: 20px }
+  main.dash[data-tab=status] > #proof { grid-row: 3 / span 3 }
+  main.dash[data-tab=status] > footer { grid-column: 1 / -1 }
+  .hero h1 { font-size: 64px }
+}
+
+/* tablet: icon rail */
+@media (max-width: 1023px) {
+  .shell { grid-template-columns: var(--rail-w) minmax(0, 1fr) }
+  .side { padding: calc(16px + var(--sat)) 10px 16px calc(10px + var(--sal)); align-items: center; gap: 22px }
+  .side .brand-word, .side-foot { display: none } .side .brand { padding: 0 }
+  #tabs a { flex-direction: column; gap: 4px; width: 72px; padding: 10px 4px; font-size: 11.5px; font-weight: 600; text-align: center }
+  .appbar-title { color: var(--text); font-size: 17px }
+  .hero h1 { font-size: 52px }
+}
+
+/* phone: bottom tab bar, compact app bar, bottom sheets, sticky Run demo */
+@media (max-width: 640px) {
+  .shell { display: block }
+  .side { position: fixed; left: 0; right: 0; bottom: 0; top: auto; height: auto; z-index: 40; flex-direction: row; gap: 0; padding: 0 calc(6px + var(--sar)) var(--sab) calc(6px + var(--sal)); border-right: 0; border-top: 1px solid var(--line-2); background: rgba(10,14,19,.88); backdrop-filter: saturate(1.3) blur(18px); -webkit-backdrop-filter: saturate(1.3) blur(18px) }
+  .side .brand { display: none }
+  #tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; gap: 0 }
+  #tabs a { width: auto; min-height: var(--tab-h); justify-content: center; gap: 3px; padding: 8px 2px 6px; font-size: 11px; background: none !important; border-color: transparent !important }
+  #tabs a .i { width: 23px; height: 23px }
+  #tabs a.active { color: var(--text) } #tabs a.active .i { color: var(--mint); stroke-width: 2.1 }
+  .top { padding: calc(8px + var(--sat)) 12px 8px 16px; gap: 10px; min-height: 56px; background: rgba(10,14,19,.8) }
+  .brand-m { display: flex } .brand-m .brand-word { display: none } .brand-m .logo { width: 32px; height: 32px }
+  .appbar-title { font-size: 17px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 }
+  .top-actions { gap: 6px; min-width: 0 }
+  .chains .chain { padding: 0; width: 34px; height: 34px; justify-content: center; font-size: 0; gap: 0 } .chains .chain .i { width: 16px; height: 16px }
+  .main-col main { padding: 4px 16px calc(var(--tab-h) + var(--sab) + 28px) }
+  .netwarn { margin: 6px 12px 0 }
+  .hero { padding-top: 8px; gap: 22px } .hero h1 { font-size: 42px; margin: 12px 0 }
+  .lead { font-size: 15.5px }
+  .card { border-radius: 20px; margin: 14px 0 }
+  footer#footer { display: none }
+  .sticky-cta { position: sticky; z-index: 6; bottom: calc(var(--tab-h) + var(--sab) + 10px); padding: 6px; margin: 0 -6px; border-radius: 24px; background: rgba(10,14,19,.86); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px) }
+  .as-title { font-size: 21px } .as-track li { padding: 9px 8px; font-size: 12.5px; gap: 6px }
+  .contracts > span { flex-direction: column; align-items: flex-start; gap: 6px }
+  /* rules table becomes stacked cards */
+  .table-wrap { overflow: visible }
+  .table-wrap table, .table-wrap tbody, .table-wrap tr, .table-wrap td { display: block; width: 100% }
+  .table-wrap thead { display: none }
+  .table-wrap tr { border: 1px solid var(--line); border-radius: 16px; padding: 4px 14px; margin-bottom: 10px; background: rgba(10,14,19,.5) }
+  .table-wrap td { background: none; border: 0 !important; border-radius: 0 !important; padding: 9px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; min-height: 40px; flex-wrap: wrap }
+  .table-wrap td + td { border-top: 1px solid var(--line) !important }
+  .table-wrap td[data-label]::before { content: attr(data-label); color: var(--dim); font-size: 12.5px; text-align: left }
+  .table-wrap td:empty { display: none }
+  /* dialogs become bottom sheets */
+  .modal { margin: auto 0 0; width: 100%; max-width: 100%; max-height: 90dvh; border-radius: 26px 26px 0 0; border-bottom: 0; padding: 10px 18px calc(22px + var(--sab)); overscroll-behavior: contain }
+  .modal[open] { animation: sheetUp 250ms var(--ease) both }
+  .modal .grabber { display: block; width: 38px; height: 5px; border-radius: 3px; background: var(--line-2); margin: 2px auto 8px }
+}
+@media (display-mode: standalone) { body { overscroll-behavior-y: none } }
+@media (pointer: coarse) { .hc-btn::after { inset: -9px } }
+@media (prefers-reduced-motion: reduce) {
+.modal[open], .install-hint, .as-track li.now { animation: none !important }
+  .as-track li, .as-dot, .as-orb, #tabs a { transition: none !important }
+}
+
+/* ---------- fixes: phone hero overflow, sheet header row, 16px inputs (no iOS zoom), no long-press callout on chrome ---------- */
+.hero > * { min-width: 0 }
+.sheet .section-head, #trust .section-head { flex-direction: row !important; align-items: center }
+.side, .top, .as-track, .install-hint { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none }
+@media (max-width: 640px) { input, select, textarea { font-size: 16px !important } }
+.grabber-zone { touch-action: none; cursor: grab; padding: 6px 0 2px; margin: -6px 0 0 }
+.modal.dragging { transition: none !important; animation: none !important }
+.modal.settling { transition: transform 250ms var(--ease) !important }
+.modal.leaving { transition: transform 200ms var(--ease), opacity 200ms var(--ease) !important }
+
+/* ---------- sidebar v2 (navbar.gallery): groups, collapse to rail, Pause + wallet block at the bottom ---------- */
+.side-head { display: flex; align-items: center; justify-content: space-between; gap: 8px }
+.side-toggle { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; color: var(--dim); cursor: pointer; transition: background-color .15s var(--ease), color .15s var(--ease) }
+.side-toggle:hover { background: var(--line); color: var(--text) }
+.side-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round }
+@media (pointer: coarse) { .side-toggle { width: 44px; height: 44px } }
+#tabs { align-content: start; gap: 2px }
+.nav-group { margin: 14px 12px 4px; font: 500 12.5px/1.2 var(--f-ui); color: var(--dim) } .nav-group:first-child { margin-top: 0 }
+.nav-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+.side-foot { display: grid; gap: 10px; padding: 0; border: 0; background: none }
+.side-note { margin: 0; padding: 0 6px; font-size: 12px; color: var(--dim) }
+.side-pause { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 14px; border-radius: 14px; background: var(--rose-soft); color: var(--rose); border: 1px solid rgba(255,143,163,.25); font-weight: 600; font-size: 14px; transition: background-color .15s var(--ease), transform .12s var(--ease) }
+.side-pause:hover { text-decoration: none; background: rgba(255,143,163,.18) } .side-pause:active { transform: scale(.97) }
+.side-pause .i { width: 18px; height: 18px; flex: none; stroke-width: 2.2 }
+.side-wallet { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; width: 100%; min-height: 56px; padding: 10px 12px; border-radius: 16px; border: 1px solid var(--line-2); background: var(--surface); text-align: left; cursor: pointer; font: inherit; color: var(--text); transition: border-color .15s var(--ease) }
+.side-wallet[hidden] { display: none }
+.side-wallet:hover { border-color: rgba(232,238,242,.24) }
+.side-wallet .sw-ic { width: 34px; height: 34px; border-radius: 10px; background: var(--mint-soft); color: var(--mint); display: grid; place-items: center } .side-wallet .sw-ic .i { width: 18px; height: 18px }
+.sw-txt { display: grid; min-width: 0 } .sw-txt b { font: 600 13.5px var(--f-ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap } .sw-txt b.mono { font-family: var(--f-mono) }
+.sw-txt small { color: var(--dim); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.shell { transition: grid-template-columns .22s var(--ease) }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+@media (min-width: 1024px) {
+  .side-collapsed .shell { grid-template-columns: var(--rail-w) minmax(0, 1fr) }
+  .side-collapsed .side { padding-left: 10px; padding-right: 10px; align-items: center }
+  .side-collapsed .side-head { flex-direction: column }
+  .side-collapsed .brand-word, .side-collapsed .nav-group, .side-collapsed .side-note, .side-collapsed .side-pause span, .side-collapsed .sw-txt, .side-collapsed #tabs a span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+  .side-collapsed .side .brand { padding: 0 }
+  .side-collapsed #tabs { gap: 10px } .side-collapsed .nav-list { gap: 4px }
+  .side-collapsed #tabs a { width: 48px; height: 48px; padding: 0; justify-content: center }
+  .side-collapsed .side-pause, .side-collapsed .side-wallet { width: 48px; height: 48px; padding: 0; display: grid; place-items: center; grid-template-columns: 1fr }
+}
+@media (min-width: 641px) and (max-width: 1023px) {
+  .side-head { flex-direction: column }
+  .side-foot { display: grid; justify-items: center }
+  .nav-group, .side-note, .side-pause span, .sw-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+  .side-pause, .side-wallet { width: 48px; height: 48px; padding: 0; display: grid; place-items: center; grid-template-columns: 1fr }
+  #tabs { gap: 8px }
+  .side-open .side { position: fixed; z-index: 50; width: 264px; left: 0; top: 0; bottom: 0; align-items: stretch; background: var(--bg); box-shadow: var(--shadow); animation: drawerIn 220ms var(--ease) both }
+  .side-open .main-col { grid-column: 2 }
+  .side-open .side-head { flex-direction: row } .side-open .side .brand-word { display: inline } .side-open .side .brand { padding: 2px 8px }
+  .side-open .nav-group, .side-open .side-note, .side-open .side-pause span, .side-open .sw-txt { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal }
+  .side-open #tabs a { flex-direction: row; width: auto; font-size: 14.5px; font-weight: 500; text-align: left; gap: 12px; padding: 10px 12px }
+  .side-open .side-pause { width: 100%; height: auto; display: flex; padding: 10px 14px }
+  .side-open .side-wallet { width: 100%; height: auto; display: grid; grid-template-columns: auto minmax(0, 1fr); padding: 10px 12px; place-items: initial; align-items: center }
+  .side-open .side-foot { justify-items: stretch }
+  .side-open .main-col::before { content: ""; position: fixed; inset: 0; z-index: 45; background: rgba(0,0,0,.5) }
+}
+@keyframes drawerIn { from { transform: translateX(-16px); opacity: 0 } }
+@media (max-width: 640px) {
+  .side-head, .nav-group, .side-foot { display: none !important }
+  #tabs { display: flex !important }
+  .nav-list, .nav-list li { display: contents }
+  #tabs a { flex: 1 1 0 }
+}
+
+/* ---------- micro-interactions (MicroKit / Motion Primitives ideas, plain CSS) ---------- */
+.as-title.swap { animation: titleIn 200ms var(--ease) both }
+@keyframes titleIn { from { opacity: 0; transform: translateY(4px) } }
+.hc-btn.done svg, .hc-btn.done .i { animation: tickIn 160ms var(--ease) both }
+@keyframes tickIn { from { transform: scale(.6); opacity: 0 } }
+@media (prefers-reduced-motion: reduce) { .shell, .side-open .side { transition: none; animation: none } .as-title.swap, .hc-btn.done svg, .hc-btn.done .i { animation: none } }

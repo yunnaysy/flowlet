@@ -2,37 +2,76 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
 <title>Flowlet · Money moves on your rules</title>
 <meta name="description" content="Standing orders, auto-save and a Safety Guard for your wallet, run by a reactive contract on Reactive Network. Testnet only." />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https: http://127.0.0.1:18545 http://127.0.0.1:18546; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https: http://127.0.0.1:18545 http://127.0.0.1:18546; object-src 'none'; base-uri 'none'; form-action 'none'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="theme-color" content="#0A0E13" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Flowlet" />
+<meta name="application-name" content="Flowlet" />
+<meta name="format-detection" content="telephone=no" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="preload" href="fonts/switzer-400.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="fonts/cabinet-grotesk-700.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="fonts/fonts.css" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22%230A0E13%22/%3E%3Cpath d=%22M7 12c4-4 7 4 11 0s5-2 7 0M7 20c4-4 7 4 11 0s5-2 7 0%22 fill=%22none%22 stroke=%22%235BE3B0%22 stroke-width=%222.4%22 stroke-linecap=%22round%22/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="app-shell.css" />
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-<header class="top">
-  <a class="brand" href="#" aria-label="Flowlet">
+<div class="shell">
+<aside class="side" id="side">
+  <div class="side-head">
+  <a class="brand" href="#/status" aria-label="Flowlet home">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12c4-4 7 4 11 0s6-3 11 0M5 20c4-4 7 4 11 0s6-3 11 0" /></svg>
-    <span>Flowlet</span>
+    <span class="brand-word">Flowlet</span>
   </a>
-  <nav class="links" aria-label="Sections">
-    <a href="#proof">Live proof</a><a href="#guard">Safety Guard</a><a href="#funds">Funds</a><a href="#rules-card">Rules</a>
+  <button type="button" id="sideToggle" class="side-toggle" aria-controls="side" aria-expanded="true" aria-label="Collapse sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg></button>
+  </div>
+  <nav id="tabs" aria-label="Main">
+    <p class="nav-group" id="ng-1">Automation</p>
+    <ul class="nav-list" role="list" aria-labelledby="ng-1">
+      <li><a href="#/status" data-tab="status"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.4"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5M12 20.5A8.5 8.5 0 0 1 3.5 12M12 7.5a4.5 4.5 0 0 1 4.5 4.5M12 16.5A4.5 4.5 0 0 1 7.5 12"/></svg><span>Status</span></a></li>
+      <li><a href="#/timeline" data-tab="timeline"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v16"/><circle cx="6" cy="7" r="1.6"/><circle cx="6" cy="17" r="1.6"/><path d="M10 7h8M10 12h6M10 17h8"/></svg><span>Timeline</span></a></li>
+    </ul>
+    <p class="nav-group" id="ng-2">Trust</p>
+    <ul class="nav-list" role="list" aria-labelledby="ng-2">
+      <li><a href="#/proof" data-tab="proof"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><span>Proof</span></a></li>
+    </ul>
+    <p class="nav-group" id="ng-3">Account</p>
+    <ul class="nav-list" role="list" aria-labelledby="ng-3">
+      <li><a href="#/settings" data-tab="settings"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M20.5 12h-2.2M5.7 12H3.5M18 6l-1.6 1.6M7.6 16.4L6 18M18 18l-1.6-1.6M7.6 7.6L6 6"/></svg><span>Settings</span></a></li>
+    </ul>
   </nav>
+  <div class="side-foot">
+    <a class="side-pause" href="#/settings?pause=1"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg><span>Pause all rules</span></a>
+    <button type="button" id="sideWallet" class="side-wallet"><span class="sw-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M5 7.5V7a2 2 0 0 1 2-2h10"/><rect x="4" y="7.5" width="16" height="11.5" rx="2.5"/><path d="M15.5 13.25h1.5"/></svg></span><span class="sw-txt"><b id="swName">Not connected</b><small id="swNet">Connect a wallet</small></span></button>
+    <p class="side-note">Testnet only. Flowlet holds your rules and an allowance you set, never your tokens.</p>
+  </div>
+</aside>
+<div class="main-col">
+<header class="top">
+  <a class="brand brand-m" href="#/status" aria-label="Flowlet home">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12c4-4 7 4 11 0s6-3 11 0M5 20c4-4 7 4 11 0s6-3 11 0" /></svg>
+    <span class="brand-word">Flowlet</span>
+  </a>
+  <span class="appbar-title" id="appbarTitle" aria-hidden="true">Status</span>
   <div class="top-actions">
     <span id="netPill" class="chains" aria-label="Networks">Loading…</span>
-    <button id="connectBtn" class="btn ghost small" hidden>Connect wallet</button>
+    <button id="connectBtn" class="btn ghost small wallet-pill" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5V7a2 2 0 0 1 2-2h10"/><rect x="4" y="7.5" width="16" height="11.5" rx="2.5"/><path d="M15.5 13.25h1.5"/></svg><span>Connect</span></button>
   </div>
 </header>
+<div id="netWarn" class="netwarn" role="alert" hidden></div>
 
-<main id="main" tabindex="-1">
-  <section class="hero">
+<main id="main" tabindex="-1" class="dash">
+  <section class="hero" data-tabs="status">
     <div class="hero-text">
       <span class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Runs on Reactive Network testnet</span>
       <h1>Your wallet,<br /><span class="accent">on autopilot.</span></h1>
@@ -46,18 +85,33 @@
         <div class="node"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2.5"/><circle cx="12" cy="12" r="3"/><path d="M12 9v-.5M15 12h.5M12 15v.5M9 12h-.5"/></svg></span><b>Vault rules</b><small>callback</small></div>
       </div>
     </div>
-    <div class="demo-box">
+    <div class="demo-box" id="demoBox">
       <div class="demo-head"><h2 class="h3">See it run, start to finish</h2><span id="demoCount" class="mono muted">10 steps</span></div>
-      <button id="runDemo" class="btn big"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.2 5.1A.8.8 0 0 0 8 5.8z"/></svg>Run demo</button>
-      <p class="small muted demo-note">Uses throwaway test money. About two minutes on testnet.</p>
+      <div class="sticky-cta"><button id="runDemo" class="btn big"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.2 5.1A.8.8 0 0 0 8 5.8z"/></svg>Run demo</button></div>
+      <p class="small muted demo-note" id="demoNote">Uses throwaway test money. About two minutes on testnet.</p>
+      <button type="button" class="btn ghost replay" id="replayBtn"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5V9h4.5"/></svg>Replay the last real loop</button>
       <ol id="demoSteps" class="steps"></ol>
     </div>
   </section>
 
-  <section class="stats" id="stats" aria-label="Balances"></section>
+  <section class="card status-card" id="autoStatus" data-tabs="status" aria-labelledby="asTitle">
+    <div class="as-head">
+      <span class="as-orb" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5M12 20.5A8.5 8.5 0 0 1 3.5 12"/></svg></span>
+      <div class="as-txt"><h2 id="asTitle" class="as-title">Checking your automation…</h2><p id="asSub" class="as-sub muted">Reading the vault and the reactive contract.</p></div>
+    </div>
+    <ol class="as-track" id="asTrack" aria-label="Automation state">
+      <li data-s="watch"><span class="as-dot" aria-hidden="true"></span>Watching</li>
+      <li data-s="trig"><span class="as-dot" aria-hidden="true"></span>Triggered</li>
+      <li data-s="exec"><span class="as-dot" aria-hidden="true"></span>Executed</li>
+    </ol>
+    <div class="as-meta"><span class="chain lasna" translate="no"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.4"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5M12 20.5A8.5 8.5 0 0 1 3.5 12"/></svg>Monitoring · Reactive Lasna</span><span id="asLast" class="small muted"></span></div>
+    <p id="asLive" class="sr-only" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="stats" id="stats" aria-label="Balances" data-tabs="status settings"></section>
   <div id="srStatus" class="sr-only" role="status" aria-live="polite"></div>
 
-  <section class="card" id="proof">
+  <section class="card" id="proof" data-tabs="timeline" data-dtabs="status">
     <div class="section-head">
       <div>
         <h2>Live Reactive proof</h2>
@@ -69,7 +123,7 @@
     <div id="timeline" class="timeline"><p class="empty"><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>No reactive activity yet. Press <b>Run demo</b> to watch a rule fire, or create one under Your rules.</p></div>
   </section>
 
-  <div class="grid2">
+  <div class="grid2" id="brainGuard" data-tabs="proof" data-dtabs="status">
     <section class="card">
       <h2>Reactive brain <small class="muted">on Lasna</small></h2>
       <ul id="subs" class="subs"></ul>
@@ -80,7 +134,7 @@
     </section>
   </div>
 
-  <section class="card funds" id="funds">
+  <section class="card funds" id="funds" data-tabs="settings">
     <div class="section-head">
       <div><h2>Funds and permissions</h2><p class="muted">Flowlet doesn't hold your money. It holds your rules. Know exactly what the automation can touch.</p></div>
       <button type="button" class="btn ghost small" id="trustBtn">How your funds are protected</button>
@@ -106,11 +160,12 @@
   </section>
 
   <dialog id="trust" class="modal" aria-labelledby="trustTitle">
+    <div class="grabber" aria-hidden="true"></div>
     <div class="section-head"><div><h2 id="trustTitle">How your funds are protected</h2></div><button type="button" class="btn ghost small" id="trustClose">Close</button></div>
     <div id="trustBody"></div>
   </dialog>
 
-  <section class="card" id="rules-card">
+  <section class="card" id="rules-card" data-tabs="settings">
     <h2>Your rules</h2>
     <p class="muted">Standing orders and auto-save. Each one runs only when your reactive contract calls back.</p>
     <div id="rules" class="table-wrap"></div>
@@ -157,13 +212,27 @@
     </details>
   </section>
 
-  <section class="card">
+  <section class="card" id="contractsCard" data-tabs="proof">
+    <h2>Contracts</h2>
+    <p class="muted">Everything Flowlet does is public and checkable on the explorers.</p>
+    <div id="contracts" class="contracts"></div>
+  </section>
+
+  <section class="card" id="installCard" data-tabs="settings">
+    <h2>Install Flowlet</h2>
+    <div id="installBox" class="install-box"></div>
+  </section>
+
+  <section class="card" id="logCard" data-tabs="settings">
     <h2>Activity log</h2>
     <div id="log" class="log" role="log" aria-live="off" tabindex="0" aria-label="Activity log"></div>
   </section>
 
   <footer id="footer" class="muted"></footer>
 </main>
+</div>
+</div>
 <script type="module" src="app.js"></script>
+<script type="module" src="shell.js"></script>
 </body>
 </html>
