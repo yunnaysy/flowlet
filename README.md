@@ -12,7 +12,7 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 |---|---|
 | ![Home: status, metrics, my automations](docs/img/v2-mobile-home-local.png) | ![Automation lifecycle timeline](docs/img/v2-mobile-timeline.png) |
 
-**Demo video:** [docs/video/flowlet-demo.mp4](docs/video/flowlet-demo.mp4) (1:47, English captions, no voiceover, recorded from the live site in no-wallet replay mode).
+**Demo video:** [docs/video/flowlet-demo.mp4](docs/video/flowlet-demo.mp4) (2:16, English voiceover (edge-tts neural voice) and burned-in captions, recorded from the redesigned live site in no-wallet, read-only mode).
 
 Design system: [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) · Security, custody & privacy: [docs/SECURITY.md](docs/SECURITY.md) · Pitch: [docs/PITCH.md](docs/PITCH.md)
 
