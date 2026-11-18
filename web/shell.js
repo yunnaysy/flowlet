@@ -31,8 +31,8 @@ const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.
 const isMobileDevice = () => /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent) || (window.matchMedia?.("(pointer: coarse)").matches && innerWidth <= 1024);
 
 // ------------------------------------------------------------------ tabs
-const TABS = ["home", "flows", "activity", "settings"];
-const TITLE = { home: "Home", flows: "Flows", activity: "Activity", settings: "Settings" };
+const TABS = ["home", "flows", "activity", "settings", "welcome"];
+const TITLE = { home: "Home", flows: "Flows", activity: "Activity", settings: "Settings", welcome: "Welcome" };
 // Old links keep working: #/status, #/timeline, #/proof and the pre-tab anchors land on the tab that now holds them.
 const OLD_TABS = { status: "home", timeline: "activity", proof: "activity" };
 const LEGACY = { proof: ["activity", "proof"], guard: ["flows", "guard"], funds: ["settings", "funds"], "rules-card": ["flows", "rules-card"] };
@@ -51,8 +51,8 @@ function applyTab() {
   for (const a of document.querySelectorAll("#tabs a")) { const on = a.dataset.tab === tab; a.classList.toggle("active", on); on ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"); }
   $("appbarTitle").textContent = TITLE[tab];
   // The hero h1 only shows on Home; other tabs get a screen-reader h1 so every tab has one.
-  const th = $("tabH1"); if (th) { th.textContent = `Flowlet ${TITLE[tab]}`; th.hidden = tab === "home"; }
-  document.title = tab === "home" ? "Flowlet · Money moves on your rules" : `${TITLE[tab]} · Flowlet`;
+  const th = $("tabH1"); if (th) { th.textContent = `Flowlet ${TITLE[tab]}`; th.hidden = tab === "welcome"; }
+  document.title = tab === "welcome" ? "Flowlet · Your wallet. Your rules. Automatic execution." : `${TITLE[tab]} · Flowlet`;
   // Tabs are peers (Appllama / Emil): switching is instant, no slide. Each tab opens at its top.
   if (changed && !first) window.scrollTo({ top: 0, behavior: "auto" });
   // Sidebar "Pause all rules" lands here: open Manage rules and focus the real Pause button. Pausing still takes a tap and a wallet confirmation.
@@ -128,25 +128,25 @@ const metamaskLink = () => `https://link.metamask.io/dapp/${location.host}${loca
 function noWallet(reason) {
   const mobile = isMobileDevice();
   const demo = reason === "demo";
-  sheet(demo ? "Run the live demo" : "No wallet in this browser", `
+  sheet(demo ? "Run demo loop" : "No wallet in this browser", `
     <p class="muted">${demo ? "The live demo signs testnet transactions from the vault owner's wallet on Ethereum Sepolia. " : ""}${mobile
       ? "Phone browsers can't talk to a wallet directly. Open Flowlet inside the MetaMask app's browser and connect there. Your keys never leave MetaMask."
       : "Flowlet connects to a browser wallet such as the MetaMask extension. Install it, reload this page, then connect."}</p>
     ${mobile ? `<a class="btn mm wide" href="${esc(metamaskLink())}" rel="noopener">${FOX}Open in MetaMask</a>` : `<a class="btn mm wide" href="https://metamask.io/download/" target="_blank" rel="noopener">${FOX}Get MetaMask</a>`}
     <hr class="sep" />
     <p class="small muted">No wallet needed for these: every row is rebuilt from real on-chain logs.</p>
-    <div class="sheet-actions"><button type="button" class="btn ghost wide" data-close data-replay>${IC.replay}Replay the last real loop</button><a class="btn ghost wide" href="#/activity" data-close>See the live timeline</a></div>`)
-    .querySelector("[data-replay]").addEventListener("click", () => { location.hash = "#/home"; setTimeout(replayLoop, 250); });
+    <div class="sheet-actions"><button type="button" class="btn ghost wide" data-close data-replay>${IC.replay}Replay the recorded loop</button><a class="btn ghost wide" href="#/activity" data-close>See the live timeline</a></div>`)
+    .querySelector("[data-replay]").addEventListener("click", runReplay);
 }
 $("sideWallet").addEventListener("click", () => $("connectBtn").click());
 window.addEventListener("flowlet:nowallet", (e) => noWallet(e.detail?.reason));
 async function checkNetwork() {
   const w = $("netWarn");
-  if (!account || !conf || conf.isLocal || !window.ethereum) { w.hidden = true; return; }
+  if (!account || !conf || conf.isLocal || !window.ethereum) { w.hidden = true; emitWallet(false); return; }
   const hex = await ethereum.request({ method: "eth_chainId" }).catch(() => null);
   const wrong = hex != null && Number(hex) !== Number(conf.destChainId);
   w.hidden = !wrong;
-  $("connectBtn").classList.toggle("wrong", wrong);
+  $("connectBtn").classList.toggle("wrong", wrong); emitWallet(wrong);
   if (wrong) {
     w.innerHTML = `<span>Your wallet is on another network. Flowlet's vault is on ${esc(conf.destName)}.</span><button type="button" class="btn small primary" id="switchNet">Switch network</button>`;
     $("switchNet").onclick = () => ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x" + Number(conf.destChainId).toString(16) }] }).then(checkNetwork).catch(() => {});
@@ -161,7 +161,7 @@ function renderSettings() {
   const owner = account && conf?.owner && account.toLowerCase() === conf.owner.toLowerCase();
   const local = conf?.isLocal;
   const walletRow = local
-    ? row(IC.wallet, "Local rehearsal", "Demo keys on your own machine", `<span class="spill ok">Connected</span>`)
+    ? row(IC.wallet, "Local rehearsal · not real data", "Private test chains and demo keys on this computer", `<span class="spill">Local</span>`)
     : account
       ? row(`<span class="fox-av">${FOX}</span>`, `<code>${esc(short(account))}</code>`, `MetaMask${owner ? " · vault owner" : ""}${conf?.destName ? ` · ${esc(conf.destName)}` : ""}`, `<span class="spill ok">Connected</span>`)
       : row(`<span class="fox-av">${FOX}</span>`, "Connected wallet", window.ethereum ? "Not connected" : isMobileDevice() ? "Open Flowlet in the MetaMask app" : "Needs a browser wallet such as MetaMask", btn("setConnect", "Connect", "primary"));
@@ -176,22 +176,28 @@ function renderSettings() {
     <div class="set-group"><h2 class="set-h">Notifications</h2><ul class="set-list">
       ${row(IC.bell, "In-app status", "Triggered and Executed show on Home as they happen. Push notifications aren't available yet.", `<span class="spill">In-app</span>`)}</ul></div>
     <div class="set-group"><h2 class="set-h">Help &amp; Support</h2><ul class="set-list">
-      ${row(IC.replay, "Replay the last real loop", "Real transactions, no wallet needed", btn("setReplay", "Replay"))}
+      ${row(IC.replay, "Replay the recorded loop", "Real testnet transactions, no wallet needed", btn("setReplay", "Replay"))}
+      ${row(IC.file, "60-second walkthrough", "Written script in the README. No video yet.", `<a class="set-go" href="https://github.com/yunnaysy/flowlet#60-second-demo" target="_blank" rel="noopener" aria-label="Open the 60-second walkthrough (new tab)">${IC.ext}</a>`)}
+      ${row(IC.help, "Glossary", "Loop, Reactive Lasna, vault rules, Safety Guard", btn("setGloss", "Open"))}
+      ${row(IC.flows, "Welcome screen", "The story and the three ways in", go("#/welcome", "Open the welcome screen"))}
       ${row(IC.help, "Source code and docs", "MIT licensed, on GitHub", `<a class="set-go" href="https://github.com/yunnaysy/flowlet" target="_blank" rel="noopener" aria-label="Open the source code on GitHub (new tab)">${IC.ext}</a>`)}</ul></div>
     ${account && !local ? `<div class="set-group"><ul class="set-list"><li class="set-row danger"><button type="button" class="set-btn" id="setDisconnect">${IC.logout}Disconnect wallet</button></li></ul></div>` : ""}`;
   $("setConnect")?.addEventListener("click", () => $("connectBtn").click());
   $("setTrust")?.addEventListener("click", () => $("trustBtn")?.click());
   $("setPrivacy")?.addEventListener("click", () => $("privacyBtn")?.click());
-  $("setReplay")?.addEventListener("click", () => { location.hash = "#/home"; setTimeout(replayLoop, 250); });
+  $("setReplay")?.addEventListener("click", runReplay);
+  $("setGloss")?.addEventListener("click", () => sheet("Glossary", `<dl class="kv gloss">${[["Loop", "One automatic run: an event on Sepolia, the reactive contract's transaction on Lasna, and the callback that runs your rule on Sepolia."], ["Reactive Lasna", "Reactive Network's testnet, where Flowlet's reactive contract watches Sepolia and sends callbacks. No server or bot of ours is involved."], ["Vault rules", "Your standing orders and auto-save, stored in the vault contract on Sepolia. Owner-only."], ["Safety Guard", "A daily cap for standing orders that pauses automation instead of overspending, plus an emergency reserve auto-save never goes below."], ["Allowance", "How many tUSD the vault may pull from your wallet. Your tokens stay in your wallet; 0 stops everything."]].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`));
   $("setDisconnect")?.addEventListener("click", async () => {
     // A web page can't log a wallet out; MetaMask supports revoking this site's account permission, and we forget it here either way.
     await window.ethereum?.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }] }).catch(() => {});
     account = null; setPill(); checkNetwork(); const sr = $("srStatus"); if (sr) sr.textContent = "Wallet disconnected";
   });
 }
+const emitWallet = (wrong = false) => window.dispatchEvent(new CustomEvent("flowlet:wallet", { detail: { account, wrong, owner: !!(account && conf?.owner && account.toLowerCase() === conf.owner.toLowerCase()) } }));
 function setPill() {
   const b = $("connectBtn");
-  b.innerHTML = account ? `${IC.wallet}<code>${esc(short(account))}</code>` : `${IC.wallet}<span>Connect</span>`;
+  b.innerHTML = account ? `<span class="cdot" aria-hidden="true"></span><span class="pill-txt"><b>Connected</b><code>${esc(short(account))}</code></span>` : `${IC.wallet}<span>Connect</span>`;
+  b.classList.toggle("addr-pill", !!account);
   $("swName").textContent = account ? short(account) : "Not connected"; $("swName").className = account ? "mono" : "";
   $("swNet").textContent = account ? (conf && account.toLowerCase() === conf.owner?.toLowerCase() ? "Vault owner" : "Connected") + (conf?.destName ? ` · ${conf.destName}` : "") : "Connect a wallet";
   renderSettings();
@@ -228,21 +234,24 @@ function paint(stage, title, sub, mode) {
     i === si ? li.setAttribute("aria-current", "step") : li.removeAttribute("aria-current");
   }
   const last = rows.find((r) => !r.pending);
+  const pb = $("asProof"); if (pb) { if (last) { pb.dataset.proof = last.nonce; pb.hidden = false; } else pb.hidden = true; }
   $("asLast").textContent = last?.callback?.ts ? `Last loop #${last.nonce} · ${ago(last.callback.ts)}` : rows.length ? "" : "No loops yet";
 }
 const moved = (r) => (r.actions || []).map((a) => `${esc(a.amount)} tUSD to <code>${esc(short(a.to))}</code>`).join(", ");
 function render() {
   if (replaying) return;
-  if (flash && Date.now() < flash.until) return paint("exec", "Executed", flash.sub, "exec");
+  if (flash && Date.now() < flash.until && !st?.paused) return paint("exec", "Executed", flash.sub, "exec");
   const pending = rows.find((r) => r.pending);
   if (pending) return paint("trig", "Triggered", `Loop #${esc(pending.nonce)} · ${esc(pending.kindLabel)}. The reactive contract fired on Lasna; the callback is on its way.`, "trig");
   if (!st) return paint("", "Checking your automation…", "Reading the vault and the reactive contract.", "");
-  if (st.paused) return paint("", "Automation paused", st.revoked ? "Access was revoked, so the reactive contract paused itself. Nothing can move until you allow it again." : `Paused${st.reason ? ` · ${esc(st.reason)}` : ""}. Nothing moves until you resume.`, "paused");
+  if (st.paused) return paint("", st.revoked ? "Access revoked · automation stopped" : "Automation paused", st.revoked
+    ? "Your allowance to the vault is 0, so the reactive contract paused itself and the vault, and dropped its CRON and deposit subscriptions. Nothing can move. To restart, allow the vault again and resume."
+    : `The vault won't execute any rule${st.reason ? ` (${esc(st.reason)})` : ""}, and the reactive contract dropped its CRON and deposit subscriptions. Your allowance is unchanged. Resume to restart.`, "paused");
   if (st.cron || st.dep) {
     const what = [st.cron ? "the schedule" : null, st.dep ? "incoming deposits" : null].filter(Boolean).join(" and ");
     return paint("watch", "Your automation is live", `Waiting for trigger… The reactive contract is watching ${what}.`, "live");
   }
-  paint("", "No automation running", demoRunning ? "Setting up rules… the status turns live as soon as the reactive contract subscribes." : "Run the demo to create a standing order and auto-save, or replay the last real loop.", "idle");
+  paint("", "No automation running", demoRunning ? "Setting up rules… the status turns live as soon as the reactive contract subscribes." : "Run the demo loop to create a standing order and auto-save, or replay the recorded loop.", "idle");
 }
 window.addEventListener("flowlet:state", (e) => { st = e.detail; render(); paintPause(); });
 /** Pause sits on the Home status card (and in Settings and the sidebar). It drives the same vault call as Flows → Pause all. */
@@ -254,8 +263,9 @@ function paintPause() {
 }
 $("asPause")?.addEventListener("click", () => {
   const mode = $("asPause").dataset.mode || "live";
-  if (mode === "revoked") { location.hash = "#/settings"; setTimeout(() => $("funds")?.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" }), 60); return; }
+  if (mode === "revoked") return sheet("Review access", `<p>Flowlet's allowance is 0, so the reactive contract paused itself and the vault. Nothing can move.</p><ol class="plain small"><li>Allow the vault again (Flows → Manage rules → Allow 2,000 tUSD).</li><li>Resume the rules. The reactive contract re-subscribes on its own.</li></ol><p class="small muted">Only the vault owner can do this.${conf && !conf.isLocal && !(account && account.toLowerCase() === conf.owner?.toLowerCase()) ? " This is the public demo vault: connect its owner wallet, or run the demo loop replay." : ""}</p><a class="btn ghost wide" href="#/flows?pause=1" data-close>Open Manage rules</a>`);
   if (conf && !conf.isLocal && !window.ethereum) return noWallet("connect");
+  if (conf && !conf.isLocal && !(account && account.toLowerCase() === conf.owner?.toLowerCase())) return sheet(mode === "paused" ? "Resume rules" : "Pause all rules", `<p>Only the vault owner can ${mode === "paused" ? "resume" : "pause"} these rules.</p><p class="small muted">This is the public demo vault on Sepolia (owner ${esc(short(conf.owner))}). Connect the owner wallet, or rehearse it locally with scripts/local-stack.sh.</p><p class="small"><b>What pausing does:</b> the vault stops executing rules and the reactive contract drops its CRON and deposit subscriptions. Your allowance is unchanged. Revoking the allowance (setting it to 0) is the stronger stop.</p>`);
   $(mode === "paused" ? "resumeBtn" : "pauseBtn")?.click();
 });
 window.addEventListener("flowlet:demo", (e) => { demoRunning = !!e.detail?.running; render(); });
@@ -286,7 +296,9 @@ async function replayLoop() {
   paint("exec", "Replay · Executed", `${moved(r) || esc(r.decisions.map((d) => d.label).join(", "))}. ${link(ex.dest, r.callback?.tx, "Callback via Reactive's proxy")}${esc(lat)}`, "exec"); await sleep(5000);
   replaying = false; btn.disabled = false; render();
 }
-$("replayBtn").addEventListener("click", replayLoop);
+function runReplay() { location.hash = "#/home"; setTimeout(() => { $("demoBox")?.scrollIntoView({ block: "start", behavior: reduceMotion() ? "auto" : "smooth" }); window.dispatchEvent(new CustomEvent("flowlet:runreplay")); }, 150); }
+$("replayBtn").addEventListener("click", () => window.dispatchEvent(new CustomEvent("flowlet:runreplay")));
+void replayLoop;
 
 // ------------------------------------------------------------------ PWA: service worker, install hint, offline screen
 let deferred = null;

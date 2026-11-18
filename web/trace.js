@@ -10,6 +10,8 @@ export const TOPICS = {
   orderExecuted: "0x101d2461aacd1f55424dc24794a4f5e698037eeeabb7317c7c3b02fd710d4e71",
   transfer: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
   approval: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+  guardTripped: "0xbae3885f34b074cf54b714a0e2a6f03bddbee124176308a8877cf4af3e0b024b",
+  orderClosed: "0x044bfef10661bc2f1f87760f6f53f1b8db59a04ddf6fa91825b132a26c46aa5c",
 };
 
 export const KIND = { 1: "Standing order", 2: "Auto-save", 3: "Safety Guard" };
@@ -205,6 +207,27 @@ export async function buildTrace(cfg, state) {
       row.actions = (rc?.logs ?? [])
         .filter((l) => l.address.toLowerCase() === cfg.token.toLowerCase() && l.topics[0] === TOPICS.transfer)
         .map((l) => ({ from: addrFromTopic(l.topics[1]), to: addrFromTopic(l.topics[2]), amount: BigInt(l.data) }));
+      // Contract state before → after, derived from the callback receipt's own logs (no archive node needed):
+      // OrderExecuted carries the new run count and due time; GuardTripped means the vault went from running to paused.
+      row.change = [];
+      const vlogs = (rc?.logs ?? []).filter((l) => l.address.toLowerCase() === cfg.vault.toLowerCase());
+      for (const l of vlogs) {
+        if (l.topics[0] === TOPICS.orderExecuted) {
+          const id = BigInt(l.topics[1]).toString();
+          const runs = Number(word(l.data, 0)), next = Number(word(l.data, 1));
+          const hist = due.get(id) ?? []; const i = hist.findIndex((h) => h.setBy === cbTx);
+          row.change.push({ what: `Order #${id} runs`, before: String(runs - 1), after: String(runs) });
+          if (i > 0) row.change.push({ what: `Order #${id} next due`, before: hist[i - 1].due, after: next, time: true });
+        } else if (l.topics[0] === TOPICS.orderClosed) {
+          row.change.push({ what: `Order #${BigInt(l.topics[1])}`, before: "active", after: "finished" });
+        } else if (l.topics[0] === TOPICS.guardTripped) {
+          row.change.push({ what: "Vault", before: "running", after: `paused (${REASON[Number(BigInt(l.topics[1]))] ?? "guard"})` });
+        }
+      }
+      for (const a of row.actions) {
+        if (cfg.wallet && a.from.toLowerCase() === cfg.wallet.toLowerCase()) row.change.push({ what: "Your wallet", delta: -a.amount });
+        row.change.push({ what: `Receiver ${short(a.to)}`, delta: a.amount });
+      }
       row.latency = {
         originToReactive: row.origin?.ts != null ? tReactive - row.origin.ts : null,
         reactiveToCallback: ts - tReactive,

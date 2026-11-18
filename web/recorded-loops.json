@@ -1,0 +1,351 @@
+{
+ "network": "eth-sepolia",
+ "chainId": 11155111,
+ "recordedAt": "2026-11-18T19:24:54.322Z",
+ "explorers": {
+  "dest": {
+   "tx": "https://sepolia.etherscan.io/tx/",
+   "addr": "https://sepolia.etherscan.io/address/"
+  },
+  "lasna": {
+   "tx": "https://lasna.reactscan.net/tx/",
+   "addr": "https://lasna.reactscan.net/address/"
+  }
+ },
+ "setup": {
+  "mint_start": "0xa0e0e1cda43011c659e725ae6f385a35fff6e919983f07c59af6619116c5453a",
+  "approve_mandate": "0xa48fc2d9efc9fc8ac690c17fdbdaeb23c8159df2b06f3773bdff04cd821f34ee",
+  "configure_guard": "0xdf08c41dcd5478b9556861f6330260090704381bc00b0a01ccf0ef3cd9cf6a88",
+  "create_order": "0xadb2033d02077fb1a678e8c720277cd26c6cdf3f6fdd56f40e771d5b8da9e6fb",
+  "configure_sweep": "0x816e18649e540546d1c22a9b61478256bbe81ae0e1310ae3376af08a3d912fdc",
+  "salary_deposit": "0x765ab31a952aa34bbfbca6e53cccee2793178be98bd7933c7cba1a34c4844bcb",
+  "revoke_mandate": "0x73b1585314bb627bdca44fa5d91154894cdcbea9243cb61105bb2a70a09ec197"
+ },
+ "rows": [
+  {
+   "nonce": 5,
+   "kind": 3,
+   "kindLabel": "Safety Guard",
+   "reactive": {
+    "tx": "0x80f5a6e14014b0db204c059998aacd6ae883391768e0d0309b4b27d34f38faf3",
+    "ts": 1795014913
+   },
+   "origin": {
+    "tx": "0x73b1585314bb627bdca44fa5d91154894cdcbea9243cb61105bb2a70a09ec197",
+    "ts": 1795014912,
+    "label": "Allowance set to 0",
+    "block": "0xb994e0"
+   },
+   "callback": {
+    "tx": "0x4e5430092a2fd0f18e3d13c9d913646a6fb68b8dadf80fcae38ccda6df37d011",
+    "ts": 1795014936,
+    "from": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb",
+    "to": "0xaa14d9cd0f788ca23d11805986c1d8bd035d23b4",
+    "viaProxy": true,
+    "sentByWallet": false
+   },
+   "decisions": [
+    {
+     "kind": 3,
+     "ruleId": "0",
+     "requested": "0",
+     "executed": "0",
+     "reason": 11,
+     "to": "0x0000000000000000000000000000000000000000",
+     "tx": "0x4e5430092a2fd0f18e3d13c9d913646a6fb68b8dadf80fcae38ccda6df37d011",
+     "block": "0xb994e2",
+     "label": "Mandate revoked",
+     "text": "The allowance was revoked. Reactive paused itself, dropped its CRON and deposit subscriptions, and paused the vault."
+    }
+   ],
+   "actions": [],
+   "change": [
+    {
+     "what": "Vault",
+     "before": "running",
+     "after": "paused (Mandate revoked)"
+    }
+   ],
+   "latency": {
+    "originToReactive": 1,
+    "reactiveToCallback": 23,
+    "total": 24
+   }
+  },
+  {
+   "nonce": 4,
+   "kind": 1,
+   "kindLabel": "Standing order",
+   "reactive": {
+    "tx": "0x7bef81063482c04ac98dac19a30ab2c035a1f2a3d8837410dd6b3baaa1f18761",
+    "ts": 1795014858
+   },
+   "origin": {
+    "tx": "0xaec91c403e66a10d7b68dbffccbab92066476aa10ad11d9de69ec8b195cd32ef",
+    "ts": 1795014852,
+    "label": "Order #0 due",
+    "isDueTime": true
+   },
+   "callback": {
+    "tx": "0x2395d899e8ee6688b0837f614235412475671fdaeebd1f68dbedbd09c58635f7",
+    "ts": 1795014864,
+    "from": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb",
+    "to": "0xaa14d9cd0f788ca23d11805986c1d8bd035d23b4",
+    "viaProxy": true,
+    "sentByWallet": false
+   },
+   "decisions": [
+    {
+     "kind": 1,
+     "ruleId": "0",
+     "requested": "25000000",
+     "executed": "25000000",
+     "reason": 0,
+     "to": "0x1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d",
+     "tx": "0x2395d899e8ee6688b0837f614235412475671fdaeebd1f68dbedbd09c58635f7",
+     "block": "0xb994dc",
+     "label": "Executed",
+     "text": "Paid 25 tUSD to 0x1a4d…1a4d (order #0)."
+    }
+   ],
+   "actions": [
+    {
+     "from": "0x88458f0df790c3544c5d9a37adf2e0dab101253d",
+     "to": "0x1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d",
+     "amount": "25000000"
+    }
+   ],
+   "change": [
+    {
+     "what": "Order #0 runs",
+     "before": "2",
+     "after": "3"
+    },
+    {
+     "what": "Order #0 next due",
+     "before": 1795014852,
+     "after": 1795014912,
+     "time": true
+    },
+    {
+     "what": "Order #0",
+     "before": "active",
+     "after": "finished"
+    },
+    {
+     "what": "Your wallet",
+     "delta": "-25000000"
+    },
+    {
+     "what": "Receiver 0x1a4d…1a4d",
+     "delta": "25000000"
+    }
+   ],
+   "latency": {
+    "originToReactive": 6,
+    "reactiveToCallback": 6,
+    "total": 12
+   }
+  },
+  {
+   "nonce": 3,
+   "kind": 1,
+   "kindLabel": "Standing order",
+   "reactive": {
+    "tx": "0xdc3ff2834a0c68c1fb1fdc4ce8c26f2c5821c70a3bd0b14d6761e6bfc10ee79a",
+    "ts": 1795014794
+   },
+   "origin": {
+    "tx": "0xbb963e3664dd62ece8b31ef37b9dd4b2bdf1c5ea16d4274e5049b302ea22afc7",
+    "ts": 1795014792,
+    "label": "Order #0 due",
+    "isDueTime": true
+   },
+   "callback": {
+    "tx": "0xaec91c403e66a10d7b68dbffccbab92066476aa10ad11d9de69ec8b195cd32ef",
+    "ts": 1795014804,
+    "from": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb",
+    "to": "0xaa14d9cd0f788ca23d11805986c1d8bd035d23b4",
+    "viaProxy": true,
+    "sentByWallet": false
+   },
+   "decisions": [
+    {
+     "kind": 1,
+     "ruleId": "0",
+     "requested": "25000000",
+     "executed": "25000000",
+     "reason": 0,
+     "to": "0x1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d",
+     "tx": "0xaec91c403e66a10d7b68dbffccbab92066476aa10ad11d9de69ec8b195cd32ef",
+     "block": "0xb994d7",
+     "label": "Executed",
+     "text": "Paid 25 tUSD to 0x1a4d…1a4d (order #0)."
+    }
+   ],
+   "actions": [
+    {
+     "from": "0x88458f0df790c3544c5d9a37adf2e0dab101253d",
+     "to": "0x1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d",
+     "amount": "25000000"
+    }
+   ],
+   "change": [
+    {
+     "what": "Order #0 runs",
+     "before": "1",
+     "after": "2"
+    },
+    {
+     "what": "Order #0 next due",
+     "before": 1795014792,
+     "after": 1795014852,
+     "time": true
+    },
+    {
+     "what": "Your wallet",
+     "delta": "-25000000"
+    },
+    {
+     "what": "Receiver 0x1a4d…1a4d",
+     "delta": "25000000"
+    }
+   ],
+   "latency": {
+    "originToReactive": 2,
+    "reactiveToCallback": 10,
+    "total": 12
+   }
+  },
+  {
+   "nonce": 2,
+   "kind": 2,
+   "kindLabel": "Auto-save",
+   "reactive": {
+    "tx": "0x1124cd205e36b9bf7052c5bdf1af0870964462a2edcd207cc78f7e778d6fbf3f",
+    "ts": 1795014756
+   },
+   "origin": {
+    "tx": "0x765ab31a952aa34bbfbca6e53cccee2793178be98bd7933c7cba1a34c4844bcb",
+    "ts": 1795014756,
+    "label": "Deposit of 1,000 tUSD",
+    "block": "0xb994d3"
+   },
+   "incoming": "1000000000",
+   "callback": {
+    "tx": "0x9c498032896cfe348df69b275b9b7a3be39df5356644f723635d5b3da4da3cda",
+    "ts": 1795014768,
+    "from": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb",
+    "to": "0xaa14d9cd0f788ca23d11805986c1d8bd035d23b4",
+    "viaProxy": true,
+    "sentByWallet": false
+   },
+   "decisions": [
+    {
+     "kind": 2,
+     "ruleId": "0",
+     "requested": "200000000",
+     "executed": "100000000",
+     "reason": 1,
+     "to": "0x5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e",
+     "tx": "0x9c498032896cfe348df69b275b9b7a3be39df5356644f723635d5b3da4da3cda",
+     "block": "0xb994d4",
+     "label": "Reserve override",
+     "text": "Auto-save wanted 200 tUSD of the 1,000 tUSD deposit, but the emergency reserve rule overrides it: saved 100 tUSD so the wallet stays above its reserve."
+    }
+   ],
+   "actions": [
+    {
+     "from": "0x88458f0df790c3544c5d9a37adf2e0dab101253d",
+     "to": "0x5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e",
+     "amount": "100000000"
+    }
+   ],
+   "change": [
+    {
+     "what": "Your wallet",
+     "delta": "-100000000"
+    },
+    {
+     "what": "Receiver 0x5a7e…5a7e",
+     "delta": "100000000"
+    }
+   ],
+   "latency": {
+    "originToReactive": 0,
+    "reactiveToCallback": 12,
+    "total": 12
+   }
+  },
+  {
+   "nonce": 1,
+   "kind": 1,
+   "kindLabel": "Standing order",
+   "reactive": {
+    "tx": "0x384be8c181648137c8dd9802e5dcda774d9e18854eade7a2ed72320d9beaa568",
+    "ts": 1795014742
+   },
+   "origin": {
+    "tx": "0xadb2033d02077fb1a678e8c720277cd26c6cdf3f6fdd56f40e771d5b8da9e6fb",
+    "ts": 1795014732,
+    "label": "Order #0 due",
+    "isDueTime": true
+   },
+   "callback": {
+    "tx": "0xbb963e3664dd62ece8b31ef37b9dd4b2bdf1c5ea16d4274e5049b302ea22afc7",
+    "ts": 1795014756,
+    "from": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb",
+    "to": "0xaa14d9cd0f788ca23d11805986c1d8bd035d23b4",
+    "viaProxy": true,
+    "sentByWallet": false
+   },
+   "decisions": [
+    {
+     "kind": 1,
+     "ruleId": "0",
+     "requested": "25000000",
+     "executed": "25000000",
+     "reason": 0,
+     "to": "0x1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d",
+     "tx": "0xbb963e3664dd62ece8b31ef37b9dd4b2bdf1c5ea16d4274e5049b302ea22afc7",
+     "block": "0xb994d3",
+     "label": "Executed",
+     "text": "Paid 25 tUSD to 0x1a4d…1a4d (order #0)."
+    }
+   ],
+   "actions": [
+    {
+     "from": "0x88458f0df790c3544c5d9a37adf2e0dab101253d",
+     "to": "0x1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d",
+     "amount": "25000000"
+    }
+   ],
+   "change": [
+    {
+     "what": "Order #0 runs",
+     "before": "0",
+     "after": "1"
+    },
+    {
+     "what": "Order #0 next due",
+     "before": 1795014732,
+     "after": 1795014792,
+     "time": true
+    },
+    {
+     "what": "Your wallet",
+     "delta": "-25000000"
+    },
+    {
+     "what": "Receiver 0x1a4d…1a4d",
+     "delta": "25000000"
+    }
+   ],
+   "latency": {
+    "originToReactive": 10,
+    "reactiveToCallback": 14,
+    "total": 24
+   }
+  }
+ ]
+}

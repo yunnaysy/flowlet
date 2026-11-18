@@ -1,24 +1,49 @@
 # Flowlet
 
-**Money moves on your rules.**
+> **Set your on-chain automation once. Reactive makes it happen when the event occurs — even when you're offline.**
 
-Flowlet puts your stablecoin wallet on autopilot: pay rent on schedule, save a slice of every paycheck, and stop
-everything the moment you revoke access. A **reactive contract on Reactive Network** watches the chain and acts for
-you. There are no bots, no keepers and no servers, and your money never leaves your wallet until a rule fires.
+**Your wallet. Your rules. Automatic execution.** Set an on-chain condition once (a due time, an incoming deposit, an allowance change). A **reactive contract on Reactive Network (Lasna testnet)** watches for the event and triggers your rule through a callback, without a bot of yours running 24/7. Your tokens stay in your wallet; the vault can only pull what an active rule allows, within the allowance you set.
 
-Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive-omni-buildathon), track
-**Set It and Forget It**.
+Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive-omni-buildathon), track **Set It and Forget It**.
 
-**Live demo:** [https://flowlet-kappa.vercel.app](https://flowlet-kappa.vercel.app)
+**Live app:** [https://flowlet-kappa.vercel.app](https://flowlet-kappa.vercel.app) · no sign-up, no email, no password: a wallet, or no wallet at all for the replay.
 
-![Flowlet: your wallet, on autopilot](docs/img/hero.png)
-
-![Activity: live Reactive proof timeline](docs/img/timeline.png)
-
-| ![Settings: funds & permissions](docs/img/funds.png) | ![How your funds are protected](docs/img/funds-modal.png) |
+| | |
 |---|---|
+| ![Home control center](docs/img/mobile-home-after-demo.png) | ![Execution proof for one loop](docs/img/mobile-proof-live.png) |
 
-Design system: [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) · Security, custody & privacy: [docs/SECURITY.md](docs/SECURITY.md)
+Design system: [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) · Security, custody & privacy: [docs/SECURITY.md](docs/SECURITY.md) · Pitch: [docs/PITCH.md](docs/PITCH.md)
+
+## How it works
+
+```mermaid
+flowchart LR
+  E[Event on Sepolia<br/>deposit · due time · allowance change] --> R{{Reactive contract on Lasna<br/>react · emits FlowRequested}}
+  R -->|callback via Reactive's proxy| C[FlowletVault callback on Sepolia<br/>Decision + token Transfer]
+  C -->|next due time| E
+```
+
+Every loop leaves three transactions you can open: the **origin** on Sepolia, the **reactive transaction** on Lasna, and the **callback** on Sepolia, sent by Reactive's callback proxy, not by your wallet or this page.
+
+## Three ways in
+
+| Path | What happens | Mode badge |
+|---|---|---|
+| **Connect wallet · Try live** | MetaMask on Ethereum Sepolia. The vault owner can run the demo loop live; any other wallet gets a read-only view and the replay. | `LIVE TESTNET` (warns on the wrong network) |
+| **Explore demo without wallet** | Replays the recorded Sepolia + Lasna run step by step. Every link is a real transaction; nothing is sent. | `DEMO MODE` |
+| **Watch the 60-second walkthrough** | There is no video yet. The link opens the written [60-second demo](#60-second-demo) below. | |
+
+The local rehearsal (`?net=local`, two Anvil chains plus a stand-in relayer) is labelled `LOCAL REHEARSAL · private test chains on this computer · not real data`.
+
+**Current state of the public demo vault:** access is revoked (allowance 0, loop #5), so the live Home shows "Access revoked · automation stopped" and offers **Review access**. That is the Safety Guard working, not an outage. Restarting needs the owner to allow the vault again and resume.
+
+## 60-second demo
+
+1. **0:00 · Open** [flowlet-kappa.vercel.app](https://flowlet-kappa.vercel.app). The welcome screen shows Event → Reactive → Action. Choose **Explore demo without wallet**.
+2. **0:10 · Home is a control center:** the automation state, "What rule is running?" (When / Then / Guard / Network), and "Last automation".
+3. **0:15 · Replay recorded loop** (the "Run demo loop" card; without the owner wallet it replays) walks five steps: Fund & allow → Set your rules → Reactive subscribes → Salary event → Reactive executes. The last step lists the three transactions of a real loop.
+4. **0:35 · View execution proof:** origin, Lasna and callback links, plus the contract state before → after (runs, next due time, balances, or vault running → paused).
+5. **0:50 · Pause vs revoke:** pausing stops every rule and Reactive drops its subscriptions, but the allowance stays. Revoking (allowance 0) makes Reactive pause itself and the vault. The live vault is in that revoked state right now.
 
 ## Installable on phones (PWA)
 
@@ -30,19 +55,19 @@ Flowlet looks and feels like a native app on a phone, without an APK. Open https
 
 | Phone | Phone | Phone | Phone |
 |---|---|---|---|
-| ![Live](docs/img/mobile-status-live.png) | ![Triggered](docs/img/mobile-status-triggered.png) | ![Executed](docs/img/mobile-status-executed.png) | ![Settings](docs/img/mobile-settings.png) |
+| ![Welcome](docs/img/mobile-welcome.png) Welcome: three paths | ![Live vault, revoked](docs/img/mobile-home-live-readonly.png) Live vault: access revoked | ![Demo loop replay](docs/img/mobile-demo-replay.png) Demo loop (replay) | ![Execution proof](docs/img/mobile-proof-live.png) Execution proof |
 
-| Desktop | Tablet |
-|---|---|
-| ![Desktop home](docs/img/desktop-home.png) | ![Tablet](docs/img/tablet-home.png) |
+| Desktop | Desktop | Tablet |
+|---|---|---|
+| ![Desktop home](docs/img/desktop-home.png) Control center (local rehearsal) | ![Desktop proof](docs/img/desktop-proof.png) Before → after | ![Tablet](docs/img/tablet-home.png) |
 
 ## What it does
 
 | Rule | Trigger (watched by the reactive contract) | What happens on the destination chain |
 |---|---|---|
-| 🏠 **Standing order**: "pay 25 tUSD to my landlord every 60 s / week / month, N times" | Reactive CRON, subscribed only while an order is active | `executeDue()` pays exactly the scheduled amount |
-| 🌱 **Auto-save**: "when I receive ≥ 100 tUSD, move 20% to savings" | `Transfer(to = my wallet)`, subscribed only while auto-save is on | `sweep()` moves the share to savings within seconds |
-| 🛡️ **Safety Guard**: daily payment limit, emergency reserve, revoke = stop | `Approval(me → vault)` plus the vault's own guard events | Revoking the allowance makes the reactive contract pause itself (drops CRON and deposit subscriptions) and the vault. Hitting the daily limit trips the same breaker. |
+| **Standing order**: "pay 25 tUSD to my landlord every 60 s / week / month, N times" | Reactive CRON, subscribed only while an order is active | `executeDue()` pays exactly the scheduled amount |
+| **Auto-save**: "when I receive ≥ 100 tUSD, move 20% to savings" | `Transfer(to = my wallet)`, subscribed only while auto-save is on | `sweep()` moves the share to savings within seconds |
+| **Safety Guard**: daily payment limit, emergency reserve, revoke = stop | `Approval(me → vault)` plus the vault's own guard events | Revoking the allowance makes the reactive contract pause itself (drops CRON and deposit subscriptions) and the vault. Hitting the daily limit trips the same breaker. |
 
 **Rules interact.** The emergency reserve overrides the auto-save percentage. If saving 20% would push the wallet
 below the reserve, Flowlet saves only what keeps the reserve intact, and the timeline explains why
@@ -116,9 +141,10 @@ Safety on the destination:
 ## Quick start (local, no testnet funds needed)
 
 ```bash
-git clone --recursive <repo-url> flowlet && cd flowlet
-forge test                          # 21 tests
-scripts/local-stack.sh              # then open http://localhost:8000/web/?net=local and press Run demo
+git clone --recursive https://github.com/yunnaysy/flowlet.git && cd flowlet
+forge test                          # 24 tests
+bash scripts/fetch-fonts.sh web/fonts cabinet-grotesk@500 cabinet-grotesk@700 cabinet-grotesk@800 switzer@400 switzer@500 switzer@600   # Fontshare fonts, not committed (license)
+scripts/local-stack.sh              # then open http://localhost:8000/web/?net=local and press Run demo loop
 scripts/local-e2e.sh                # or: the same story headless, ~3 minutes, prints LOCAL E2E: OK
 ```
 
