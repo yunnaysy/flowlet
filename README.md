@@ -1,134 +1,175 @@
-# Reactive Autopilot
+# Flowlet
 
-**Standing orders and auto-save for your crypto wallet, run entirely by a reactive contract.**
-No bots, no keepers, no custody, and nothing to keep running on a server.
+**Money moves on your rules.**
 
-Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive-omni-buildathon), track **Set It and Forget It**.
+Flowlet puts your stablecoin wallet on autopilot: pay rent on schedule, save a slice of every paycheck, and stop
+everything the moment you revoke access. A **reactive contract on Reactive Network** watches the chain and acts for
+you. There are no bots, no keepers and no servers, and your money never leaves your wallet until a rule fires.
 
-> Is this something you'd actually leave running? Yes. It is the crypto version of the two bank features people
-> rely on most: *pay my rent every month* and *put 20% of my salary into savings when it lands*.
+Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive-omni-buildathon), track
+**Set It and Forget It**.
+
+![Live Reactive Proof timeline](docs/img/timeline.png)
 
 ## What it does
 
-| Rule | Trigger | Action |
+| Rule | Trigger (watched by the reactive contract) | What happens on the destination chain |
 |---|---|---|
-| **Standing order** – "pay 25 tUSD to my landlord every 60 s / week / month, N times" | Reactive CRON tick, only while an order is due | `executeDue()` pulls exactly the scheduled amount from the user's wallet to the payee |
-| **Auto-save sweep** – "when I receive ≥ 100 tUSD, move 20% to my savings wallet" | ERC-20 `Transfer(to = my wallet)` on the destination chain | `sweep()` moves the configured share to savings within seconds |
+| 🏠 **Standing order**: "pay 25 tUSD to my landlord every 60 s / week / month, N times" | Reactive CRON, subscribed only while an order is active | `executeDue()` pays exactly the scheduled amount |
+| 🌱 **Auto-save**: "when I receive ≥ 100 tUSD, move 20% to savings" | `Transfer(to = my wallet)`, subscribed only while auto-save is on | `sweep()` moves the share to savings within seconds |
+| 🛡️ **Safety Guard**: daily payment limit, emergency reserve, revoke = stop | `Approval(me → vault)` plus the vault's own guard events | Revoking the allowance makes the reactive contract pause itself (drops CRON and deposit subscriptions) and the vault. Hitting the daily limit trips the same breaker. |
 
-Funds never leave the user's wallet until a rule fires: the vault only holds a capped ERC-20 allowance.
+**Rules interact.** The emergency reserve overrides the auto-save percentage. If saving 20% would push the wallet
+below the reserve, Flowlet saves only what keeps the reserve intact, and the timeline explains why
+("Auto-save wanted 200 tUSD … saved 125 tUSD so the wallet stays above its reserve").
+
+## Live Reactive Proof (execution trace)
+
+The dashboard rebuilds every automation from on-chain logs only, so judges can see that **Reactive callbacks, not
+frontend buttons, moved the funds**:
+
+1. **Origin event** on the destination chain (Ethereum Sepolia) (deposit, allowance change, or the tx that set an order's due time)
+2. **Reactive transaction on Lasna**: `FlowRequested(nonce, kind, originTxHash)`
+3. **Callback transaction** on the destination chain, checked to be sent **through Reactive's callback proxy** and not by the user
+4. **Rule evaluation**: `Decision(nonce, …)`, emitted by the vault with the same `nonce`
+5. **Action**: the token `Transfer` inside the callback transaction
+
+…with explorer links and latency for each leg (origin → Lasna → callback). `scripts/report.mjs` produces the same
+trace as a Markdown table for the DoraHacks submission.
 
 ## Architecture
 
 ```
- Base Sepolia (destination + origin)                     Reactive Lasna (5318007)
-┌──────────────────────────────────────┐   events      ┌──────────────────────────────────────────┐
-│ AutopilotVault (callback contract)   │ ────────────▶ │ AutopilotReactive                        │
-│  createOrder / cancelOrder           │ OrderScheduled│  • mirrors every order (id → next due)   │
-│  configureSweep                      │ OrderExecuted │  • subscribes to CRON only while ≥1 order│
-│  executeDue(rvm, ids[])  ◀───────┐   │ OrderClosed   │    is active, unsubscribes when idle     │
-│  sweep(rvm, token, amt, tx, idx) │   │ SweepConfigured│ • on SweepConfigured, subscribes at     │
-└──────────────────────────────────┼───┘               │    runtime to Transfer(to = wallet)      │
- MockUSD / any ERC-20 ─ Transfer ──┼─────────────────▶ │  • batches due orders into one callback  │
-                                   │   callback proxy  │  • requestCallbackV_1_0(...)             │
-                                   └────────────────── └──────────────────────────────────────────┘
+ Ethereum Sepolia (or Base Sepolia)                        Reactive Lasna (5318007)
+┌────────────────────────────────────────┐   events      ┌───────────────────────────────────────────┐
+│ FlowletVault  (callback contract)      │ ────────────▶ │ FlowletReactive                           │
+│  createOrder / configureSweep /        │ OrderScheduled│  • mirrors every rule (no setup on Lasna)  │
+│  configureGuard / pause / resume       │ OrderExecuted │  • CRON on only while ≥1 order & not paused│
+│  executeDue(rvm, nonce, ids[])  ◀───┐  │ SweepConfigured│ • deposit watch on only while auto-save on│
+│  sweep(rvm, nonce, amount, tx, idx) │  │ GuardTripped… │  • circuit breaker on Approval(→ 0)       │
+│  tripGuard(rvm, nonce, reason)      │  │               │  • batches due orders, de-dups in-flight  │
+│  emits Decision(nonce, …)           │  │               │  • emits FlowRequested(nonce, …)          │
+└─────────────────────────────────────┼──┘               └───────────────────────────────────────────┘
+ tUSD ── Transfer(→ wallet), Approval ┼────────────────▶            requestCallbackV_1_0(...)
+                                      └──── Reactive callback proxy ◀──────────────┘
 ```
 
-Why the reactive contract does real work (Integration):
+Why the reactive contract does real work (the "Integration" criterion):
 
-* **Self-configuring.** The user only talks to the vault. The reactive contract learns every rule by listening to
-  the vault's own events, so there is one source of truth and zero manual setup on Reactive.
-* **Dynamic subscriptions.** Watching deposits requires subscribing to a token chosen by the user, filtered by
-  `topic2 = wallet`. The reactive contract subscribes, re-subscribes and unsubscribes at runtime from inside `react()`.
-* **Pay only when needed.** CRON billing stops automatically when no order is active (an idle autopilot costs nothing).
-* **Batching and de-duplication.** All due orders go out in a single callback; a `pendingSince` timeout prevents
-  duplicate requests while a callback is in flight.
+* **Self-configuring.** Users only talk to the vault; the reactive contract learns every rule from the vault's events.
+* **Dynamic subscriptions.** It subscribes and unsubscribes at runtime, from inside `react()`: CRON, deposits, and back.
+  An idle or paused Flowlet costs nothing.
+* **Circuit breaker on Reactive.** A revoked mandate is detected and enforced on Reactive first (no more callbacks
+  are even requested), then mirrored to the vault.
+* **Batching and de-duplication.** All due orders go out in one callback; `pendingSince` prevents duplicate requests.
 
-Safety on the destination side:
+Safety on the destination:
 
-* `onlyServiceProvider` (callback proxy) **and** `onlyCallbackSender` (this reactive contract) on every callback.
-* The vault re-checks due time, active flag and duplicate origin logs, so stale or repeated callbacks are no-ops.
+* Every callback is guarded by `onlyServiceProvider` (callback proxy) **and** `onlyCallbackSender` (this reactive contract).
+* The vault re-validates everything (due time, pause state, daily limit, reserve, duplicate origin logs), so a stale or
+  repeated callback is a no-op that still logs a `Decision`.
+* Non-custodial: one capped ERC-20 allowance. Paying yourself or saving into your own wallet is rejected (no loops).
 * No catch-up bursts after downtime; failed pulls retry after 2 min and auto-close after 3 consecutive failures.
-* Timers use `block.timestamp` only (Base Sepolia has 200 ms blocks; block-count timers would run 10× fast).
-* Paying yourself or saving into your own wallet is rejected, so a sweep can never trigger itself.
+* All timers use `block.timestamp`, never block counts (Base Sepolia has 200 ms blocks).
 
 ## Repository layout
 
 | Path | What |
 |---|---|
-| `src/AutopilotReactive.sol` | Reactive contract on Lasna (subscriptions, mirror, CRON, callbacks) |
-| `src/AutopilotVault.sol` | Callback contract on Base Sepolia (rules, payments, sweeps) |
-| `src/MockUSD.sol` | Testnet ERC-20 with an open faucet for the demo |
-| `test/Autopilot.t.sol` | 17 Foundry tests incl. full-loop simulation and fuzzing |
-| `scripts/deploy.sh` | Deploys everything, wires it, writes `deployments/<chain>.json` |
-| `scripts/demo.sh` | Creates a standing order and a sweep rule, then sends a "salary" deposit |
-| `scripts/report.mjs` | Builds the full-loop evidence table (origin tx → Lasna tx → callback tx, latency) from public RPCs |
-| `scripts/autopilot.sh` | CLI: status, order, cancel, sweep, mint, cron fast/slow |
-| `scripts/local-e2e.sh` | Local rehearsal on two anvil chains with a bash relayer standing in for Reactive |
-| `web/index.html` | Single-file dashboard (read via RPC, write via MetaMask) |
+| `src/FlowletReactive.sol` | Reactive contract on Lasna |
+| `src/FlowletVault.sol` | Callback contract on the destination chain (rules, Safety Guard, `Decision` trace events) |
+| `src/MockUSD.sol` | Testnet stablecoin (tUSD) with an open faucet |
+| `test/Flowlet.t.sol` | 21 Foundry tests: full-loop simulation, circuit breaker, daily limit, reserve override, security, fuzzing |
+| `web/` | Dashboard (`index.html`, `app.js`, `style.css`) and the shared trace builder `trace.js` |
+| `scripts/deploy.sh` | Deploys and wires everything, writes `deployments/<net>.json` |
+| `scripts/demo.sh` | The RUN DEMO story from the command line |
+| `scripts/report.mjs` | Full-loop evidence table (Markdown) from RPC data only |
+| `scripts/flowlet.sh` | CLI: status, order, cancel, save, guard, pause, resume, revoke, mint, cron fast/slow |
+| `scripts/local-stack.sh` | Two local anvil chains plus a relayer that plays Reactive Network, plus the dashboard |
+| `scripts/local-e2e.sh` | Headless rehearsal of the full story with pass/fail checks |
 
-## Quick start
+## Quick start (local, no testnet funds needed)
 
 ```bash
-git clone --recursive <this repo> && cd reactive-autopilot
-forge test                       # 17 tests
-scripts/local-e2e.sh             # optional: full local rehearsal (~3 min)
+git clone --recursive <repo-url> flowlet && cd flowlet
+forge test                          # 21 tests
+scripts/local-stack.sh              # then open http://localhost:8000/web/?net=local and press RUN DEMO
+scripts/local-e2e.sh                # or: the same story headless, ~3 minutes, prints LOCAL E2E: OK
 ```
 
-### Deploy to testnet
+The local relayer only stands in for Reactive Network so the UI can be developed offline. The real submission
+evidence comes from Ethereum Sepolia + Lasna (below).
 
-1. Create a key file `DEPLOYER_SECRET.txt` (git-ignored) containing `PRIVATE_KEY=0x...` for a **fresh testnet-only** key.
-2. Fund the address with Base Sepolia ETH (≈0.05 ETH is plenty). The deploy script then buys lREACT automatically by
-   calling the Lasna faucet contract on Base Sepolia (`request(address)`, 1 ETH → 100 lREACT).
+## Deploy to testnet (Ethereum Sepolia + Reactive Lasna; Base Sepolia optional)
+
+1. Put a **fresh, testnet-only** key in `DEPLOYER_SECRET.txt` (`PRIVATE_KEY=0x…`; the file is git-ignored).
+2. Fund that address with ~0.05 Sepolia ETH. `deploy.sh` checks the budget, then buys ~3 lREACT itself by sending
+   0.03 ETH to the Lasna faucet contract (`request(address)`, 1 ETH → 100 lREACT), and keeps 0.005 ETH in the vault
+   to pay for callbacks.
 3. Run:
 
 ```bash
-scripts/deploy.sh                # MockUSD + AutopilotVault on Base Sepolia, AutopilotReactive on Lasna
-scripts/demo.sh                  # order: 25 tUSD every 60 s × 3; sweep: 20% of deposits ≥ 100 tUSD
-sleep 240 && node scripts/report.mjs   # writes deployments/base-sepolia.LOOP_REPORT.md
-scripts/autopilot.sh cron slow   # switch to Cron100 after the demo to save lREACT
+scripts/deploy.sh                          # MockUSD + FlowletVault (Sepolia), FlowletReactive (Lasna)
+python3 -m http.server 8000                # dashboard: http://localhost:8000/web/  (defaults to eth-sepolia)
+scripts/demo.sh                            # or press RUN DEMO with the deployer account in MetaMask
+node scripts/report.mjs                    # writes deployments/eth-sepolia.LOOP_REPORT.md
+scripts/flowlet.sh cron slow               # after recording: Cron100 to save lREACT
 ```
 
-Unichain Sepolia works the same way:
-`DEST_NAME=unichain-sepolia DEST_RPC=https://sepolia.unichain.org DEST_CHAIN_ID=1301 DEST_PROXY=0x775c9B990ADe401060B78D0e98684eEf8d2466C1`
-(fund lREACT separately, since the faucet contract lives on Base Sepolia / Ethereum Sepolia).
-
-### Dashboard
-
-```bash
-python3 -m http.server 8000      # then open http://localhost:8000/web/
-```
+Other destinations: `NETWORK=base-sepolia scripts/deploy.sh` (faucet contract on Base Sepolia too) or
+`NETWORK=unichain-sepolia` (fund lREACT on Lasna separately). Then open the dashboard with `?net=<network>`.
 
 ## Network reference (testnet)
 
 | | Value |
 |---|---|
-| Reactive Lasna RPC / chain id | `https://lasna-rpc.rnk.dev/` / `5318007`, explorer `https://lasna.reactscan.net` |
+| Reactive Lasna | RPC `https://lasna-rpc.rnk.dev/`, chain id `5318007`, explorer `https://lasna.reactscan.net` |
 | System contract | `0x8888888888888888888888888888888888888888` |
 | CRON source | `0x0000000000000000000000000000000000fffFfF` (Cron10 ≈ 10 s, Cron100 ≈ 100 s) |
+| Ethereum Sepolia callback proxy | `0xAa14d9Cd0f788Ca23d11805986C1d8bd035D23b4` |
 | Base Sepolia callback proxy | `0x476F44b11F5C942c58f4c8E3d0300E5710743585` |
 | Unichain Sepolia callback proxy | `0x775c9B990ADe401060B78D0e98684eEf8d2466C1` |
-| lREACT faucet (Base Sepolia) | `0x2afaFD298b23b62760711756088F75B7409f5967` |
-| lREACT faucet (Ethereum Sepolia) | `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434` |
+| lREACT faucet contracts | Base Sepolia `0x2afaFD298b23b62760711756088F75B7409f5967`, Ethereum Sepolia `0x9b9BB25f1A81078C544C829c5EB7822d747Cf434` |
 
 Library: [`reactive-lib-omni`](https://github.com/Reactive-Network/reactive-lib-omni) v0.1.0 (`requestCallbackV_1_0`).
 
 ## Deployed contracts and full-loop transactions
 
-_Filled in from `deployments/base-sepolia.json` and `deployments/base-sepolia.LOOP_REPORT.md` after the testnet run._
+Live on **Ethereum Sepolia** (destination, chain 11155111) + **Reactive Lasna** (chain 5318007), deployed 18 Nov 2026.
 
-| Contract | Chain | Address |
-|---|---|---|
-| AutopilotReactive | Lasna | _pending_ |
-| AutopilotVault | Base Sepolia | _pending_ |
-| MockUSD | Base Sepolia | _pending_ |
+| Contract | Chain | Address | Deploy tx |
+|---|---|---|---|
+| FlowletReactive | Lasna | [`0x468866a09EA93935aEAb65B3f8b1db8c1dF57143`](https://lasna.reactscan.net/address/0x468866a09EA93935aEAb65B3f8b1db8c1dF57143) | [0x015ec571…](https://lasna.reactscan.net/tx/0x015ec5712ad13152ab6e64e25d27bd64e63f6ba611f3cdfd28b225404c41bb19) |
+| FlowletVault | Ethereum Sepolia | [`0x6DB68e4AbF7c6F276Af36B231Ec30f8ce8e1B612`](https://sepolia.etherscan.io/address/0x6DB68e4AbF7c6F276Af36B231Ec30f8ce8e1B612) | [0x77dde0a1…](https://sepolia.etherscan.io/tx/0x77dde0a18d9fe007e41a77cea8574bd37c277060d1dd297bc0709beb6f2f0f71) |
+| MockUSD (tUSD) | Ethereum Sepolia | [`0x33A8adf307B1D66825e5a76D388F82aD015042d3`](https://sepolia.etherscan.io/address/0x33A8adf307B1D66825e5a76D388F82aD015042d3) | [0xebd73f72…](https://sepolia.etherscan.io/tx/0xebd73f72b86ac370f9511fe03c36f38dcba9af924c25cd009d4455ea1bc60f1f) |
+
+Wiring: `setVault` [0xe5b9b0d6…](https://lasna.reactscan.net/tx/0xe5b9b0d6537f150c323ed733b8b4a912704c4077c52f00e054e1dcadb9d4749a) · callback proxy `0xAa14d9Cd0f788Ca23d11805986C1d8bd035D23b4` · every callback below
+was sent by the Reactive signer `0xF7E866D726658F6C3F14B8EE537fe268a4D91DDb` to that proxy, not by the vault owner.
+
+Full loops from the demo run (`scripts/demo.sh`, then `node scripts/report.mjs`):
+
+| Nonce | Rule | Origin (eth-sepolia) | Reactive tx (Lasna) | Callback tx (eth-sepolia) | Via callback proxy | Decision | Moved | origin→Lasna | origin→callback |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | Standing order | Order #0 due [0xadb2033d…](https://sepolia.etherscan.io/tx/0xadb2033d02077fb1a678e8c720277cd26c6cdf3f6fdd56f40e771d5b8da9e6fb) | [0x384be8c1…](https://lasna.reactscan.net/tx/0x384be8c181648137c8dd9802e5dcda774d9e18854eade7a2ed72320d9beaa568) | [0xbb963e36…](https://sepolia.etherscan.io/tx/0xbb963e3664dd62ece8b31ef37b9dd4b2bdf1c5ea16d4274e5049b302ea22afc7) | yes | Executed | 25 | 10s | 24s |
+| 2 | Auto-save | Deposit of 1,000 tUSD [0x765ab31a…](https://sepolia.etherscan.io/tx/0x765ab31a952aa34bbfbca6e53cccee2793178be98bd7933c7cba1a34c4844bcb) | [0x1124cd20…](https://lasna.reactscan.net/tx/0x1124cd205e36b9bf7052c5bdf1af0870964462a2edcd207cc78f7e778d6fbf3f) | [0x9c498032…](https://sepolia.etherscan.io/tx/0x9c498032896cfe348df69b275b9b7a3be39df5356644f723635d5b3da4da3cda) | yes | Reserve override | 100 | 0s | 12s |
+| 3 | Standing order | Order #0 due [0xbb963e36…](https://sepolia.etherscan.io/tx/0xbb963e3664dd62ece8b31ef37b9dd4b2bdf1c5ea16d4274e5049b302ea22afc7) | [0xdc3ff283…](https://lasna.reactscan.net/tx/0xdc3ff2834a0c68c1fb1fdc4ce8c26f2c5821c70a3bd0b14d6761e6bfc10ee79a) | [0xaec91c40…](https://sepolia.etherscan.io/tx/0xaec91c403e66a10d7b68dbffccbab92066476aa10ad11d9de69ec8b195cd32ef) | yes | Executed | 25 | 2s | 12s |
+| 4 | Standing order | Order #0 due [0xaec91c40…](https://sepolia.etherscan.io/tx/0xaec91c403e66a10d7b68dbffccbab92066476aa10ad11d9de69ec8b195cd32ef) | [0x7bef8106…](https://lasna.reactscan.net/tx/0x7bef81063482c04ac98dac19a30ab2c035a1f2a3d8837410dd6b3baaa1f18761) | [0x2395d899…](https://sepolia.etherscan.io/tx/0x2395d899e8ee6688b0837f614235412475671fdaeebd1f68dbedbd09c58635f7) | yes | Executed | 25 | 6s | 12s |
+| 5 | Safety Guard | Allowance set to 0 [0x73b15853…](https://sepolia.etherscan.io/tx/0x73b1585314bb627bdca44fa5d91154894cdcbea9243cb61105bb2a70a09ec197) | [0x80f5a6e1…](https://lasna.reactscan.net/tx/0x80f5a6e14014b0db204c059998aacd6ae883391768e0d0309b4b27d34f38faf3) | [0x4e543009…](https://sepolia.etherscan.io/tx/0x4e5430092a2fd0f18e3d13c9d913646a6fb68b8dadf80fcae38ccda6df37d011) | yes | Mandate revoked | 0 | 1s | 24s |
+
+- **#1 Standing order:** Paid 25 tUSD to 0x1a4d…1a4d (order #0).
+- **#2 Auto-save:** Auto-save wanted 200 tUSD of the 1,000 tUSD deposit, but the emergency reserve rule overrides it: saved 100 tUSD so the wallet stays above its reserve.
+- **#3 Standing order:** Paid 25 tUSD to 0x1a4d…1a4d (order #0).
+- **#4 Standing order:** Paid 25 tUSD to 0x1a4d…1a4d (order #0).
+- **#5 Safety Guard:** The allowance was revoked. Reactive paused itself, dropped its CRON and deposit subscriptions, and paused the vault.
+
+Full report: [`deployments/eth-sepolia.LOOP_REPORT.md`](deployments/eth-sepolia.LOOP_REPORT.md).
 
 ## Limitations and next steps
 
-* One vault per user (by design, it keeps authorization simple). A factory can deploy vault + reactive pairs.
-* Up to 32 active orders per autopilot and 8 per callback batch.
-* The reactive contract trusts the vault's events; the vault re-validates everything, so a mis-mirror can only
-  delay a payment, never move extra funds.
-* Ideas: calendar-month schedules, multi-token sweeps, low-balance alerts, Unichain + Base in one autopilot.
+* One stablecoin and one vault per user, which keeps authorization simple. A factory could deploy vault + reactive pairs.
+* Up to 32 active orders per Flowlet and 8 per callback batch.
+* The daily limit applies to standing-order payments; auto-save only moves money to the user's own savings address.
+* Next: calendar-month schedules, multiple tokens, Unichain + Base in one Flowlet.
 
 ## License
 

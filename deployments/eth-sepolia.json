@@ -1,0 +1,26 @@
+{
+  "destination": "eth-sepolia",
+  "destinationChainId": 11155111,
+  "destinationRpc": "https://ethereum-sepolia-rpc.publicnode.com",
+  "lasnaRpc": "https://lasna-rpc.rnk.dev/",
+  "deployer": "0x88458F0dF790c3544C5D9A37adF2e0DAb101253D",
+  "callbackProxy": "0xAa14d9Cd0f788Ca23d11805986C1d8bd035D23b4",
+  "cronTopic": "0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687",
+  "wallet": "0x88458F0dF790c3544C5D9A37adF2e0DAb101253D",
+  "contracts": {
+    "mockUSD": "0x33A8adf307B1D66825e5a76D388F82aD015042d3",
+    "flowletVault": "0x6DB68e4AbF7c6F276Af36B231Ec30f8ce8e1B612",
+    "flowletReactive": "0x468866a09EA93935aEAb65B3f8b1db8c1dF57143"
+  },
+  "txs": {
+    "mockUSD": "0xebd73f72b86ac370f9511fe03c36f38dcba9af924c25cd009d4455ea1bc60f1f",
+    "flowletVault": "0x77dde0a18d9fe007e41a77cea8574bd37c277060d1dd297bc0709beb6f2f0f71",
+    "flowletReactive": "0x015ec5712ad13152ab6e64e25d27bd64e63f6ba611f3cdfd28b225404c41bb19",
+    "setVault": "0xe5b9b0d6537f150c323ed733b8b4a912704c4077c52f00e054e1dcadb9d4749a",
+    "lreactFaucet": "0x38cfa7a998878d2c228078c303cb64ccc8d3ba5ae9034c32491f9f639f942a56"
+  },
+  "startBlocks": {
+    "destination": 12162252,
+    "lasna": 8661049
+  }
+}

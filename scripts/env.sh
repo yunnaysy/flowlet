@@ -18,15 +18,29 @@ DEPLOYER="$(cast wallet address --private-key "$PRIVATE_KEY")"
 LASNA_RPC="${LASNA_RPC:-https://lasna-rpc.rnk.dev/}"
 LASNA_CHAIN_ID="${LASNA_CHAIN_ID:-5318007}"
 
-# Destination chain. Defaults to Base Sepolia; for Unichain Sepolia use
-#   DEST_RPC=https://sepolia.unichain.org DEST_CHAIN_ID=1301 DEST_PROXY=0x775c9B990ADe401060B78D0e98684eEf8d2466C1
-DEST_NAME="${DEST_NAME:-base-sepolia}"
-DEST_RPC="${DEST_RPC:-https://sepolia.base.org}"
-DEST_CHAIN_ID="${DEST_CHAIN_ID:-84532}"
-DEST_PROXY="${DEST_PROXY:-0x476F44b11F5C942c58f4c8E3d0300E5710743585}"
+# Destination chain preset: NETWORK=eth-sepolia (default) | base-sepolia | unichain-sepolia.
+# Any single value can still be overridden (DEST_RPC, DEST_CHAIN_ID, DEST_PROXY, LREACT_FAUCET, DEST_NAME).
+NETWORK="${NETWORK:-eth-sepolia}"
+case "$NETWORK" in
+  eth-sepolia)
+    _RPC=https://ethereum-sepolia-rpc.publicnode.com; _CID=11155111
+    _PROXY=0xAa14d9Cd0f788Ca23d11805986C1d8bd035D23b4; _FAUCET=0x9b9BB25f1A81078C544C829c5EB7822d747Cf434 ;;
+  base-sepolia)
+    _RPC=https://sepolia.base.org; _CID=84532
+    _PROXY=0x476F44b11F5C942c58f4c8E3d0300E5710743585; _FAUCET=0x2afaFD298b23b62760711756088F75B7409f5967 ;;
+  unichain-sepolia)
+    _RPC=https://sepolia.unichain.org; _CID=1301
+    _PROXY=0x775c9B990ADe401060B78D0e98684eEf8d2466C1; _FAUCET= ;;  # no lREACT faucet here: fund Lasna separately
+  *) echo "unknown NETWORK=$NETWORK"; exit 1 ;;
+esac
+DEST_NAME="${DEST_NAME:-$NETWORK}"
+DEST_RPC="${DEST_RPC:-$_RPC}"
+DEST_CHAIN_ID="${DEST_CHAIN_ID:-$_CID}"
+DEST_PROXY="${DEST_PROXY:-$_PROXY}"
 
-# Lasna faucet contract living on the destination chain (Base Sepolia). 1 ETH -> 100 lREACT, max 5 ETH/tx.
-LREACT_FAUCET="${LREACT_FAUCET:-0x2afaFD298b23b62760711756088F75B7409f5967}"
+# Lasna faucet contract on the destination chain: request(address) payable, 1 ETH -> 100 lREACT, max 5 ETH/tx.
+LREACT_FAUCET="${LREACT_FAUCET:-$_FAUCET}"
+LREACT_ETH="${LREACT_ETH:-0.03ether}"   # -> ~3 lREACT
 
 # CRON topics (legacy system contract 0x...fffFfF on Reactive)
 CRON10=0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687
@@ -34,8 +48,8 @@ CRON100=0xb49937fb8970e19fd46d48f7e3fb00d659deac0347f79cd7cb542f0fc1503c70
 CRON_TOPIC="${CRON_TOPIC:-$CRON10}"
 
 # Funding (testnet units)
-REACTIVE_FUNDING="${REACTIVE_FUNDING:-2ether}"   # lREACT sent to the reactive contract for reactive txs
-VAULT_FUNDING="${VAULT_FUNDING:-0.002ether}"      # destination ETH sent to the vault for callback gas
+REACTIVE_FUNDING="${REACTIVE_FUNDING:-2ether}"   # lREACT sent to the reactive contract (of ~3 from the faucet)
+VAULT_FUNDING="${VAULT_FUNDING:-0.005ether}"      # destination ETH kept by the vault to pay for callbacks
 
 DEPLOY_FILE="${DEPLOY_FILE:-$ROOT/deployments/$DEST_NAME.json}"
 

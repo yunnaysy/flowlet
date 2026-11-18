@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.29;
 
-/// @title MockUSD (tUSD) - testnet-only ERC-20 with an open faucet, used to demo Reactive Autopilot.
+/// @title MockUSD (tUSD) - testnet-only ERC-20 with an open faucet, used to demo Flowlet.
 contract MockUSD {
-    string public constant name = "Autopilot Test USD";
+    string public constant name = "Flowlet Test USD";
     string public constant symbol = "tUSD";
     uint8 public constant decimals = 6;
     uint256 public totalSupply;

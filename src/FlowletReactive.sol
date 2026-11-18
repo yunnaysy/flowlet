@@ -6,41 +6,45 @@ import {IReactive} from "@reactive/src/interfaces/IReactive.sol";
 import {AbstractReactive} from "@reactive/src/base/AbstractReactive.sol";
 
 /**
- * @title AutopilotReactive
- * @notice The brain of Reactive Autopilot, deployed on Reactive Network (Lasna testnet).
+ * @title FlowletReactive
+ * @notice The brain of Flowlet, deployed on Reactive Network (Lasna testnet). Holds no user funds.
  *
- * It holds no user funds and needs no manual configuration beyond `setVault()`:
- *
- *  - It subscribes to the vault's own events on the destination chain and mirrors every standing
- *    order (id -> next due time). The user configures rules in one place, the vault.
- *  - It subscribes to Reactive's CRON only while at least one order is active, and drops the
- *    subscription when the last one closes, so an idle autopilot costs nothing.
- *  - When the user configures an auto-save sweep, it subscribes *at runtime* to the ERC-20
- *    `Transfer` events of that token whose `to` is the user's wallet. A qualifying deposit
- *    triggers a `sweep()` callback a few seconds later.
- *  - On each CRON tick it batches every due order into a single `executeDue()` callback.
+ *  - Mirrors every rule by subscribing to the vault's own events: users configure rules in one place.
+ *  - Subscribes to CRON only while a standing order is active and the guard is not tripped.
+ *  - Subscribes at runtime to `Transfer(to = wallet)` only while auto-save is on.
+ *  - Safety Guard (circuit breaker): watches `Approval(wallet -> vault)`. If the mandate is revoked it
+ *    pauses itself immediately, drops its CRON and deposit subscriptions, and tells the vault to pause.
+ *    It also mirrors pauses raised by the vault (daily limit, manual stop) and resumes when the owner does.
+ *  - Every callback carries a `nonce` that the vault echoes in `Decision`, giving an exact execution trace:
+ *    origin event -> FlowRequested(nonce) on Lasna -> Decision(nonce) on the destination chain.
  */
-contract AutopilotReactive is AbstractReactive {
+contract FlowletReactive is AbstractReactive {
     // ------------------------------------------------------------- constants
 
     address internal constant LEGACY_SYSTEM_ADDR = 0x0000000000000000000000000000000000fffFfF;
 
     uint256 internal constant TRANSFER_TOPIC = uint256(keccak256("Transfer(address,address,uint256)"));
+    uint256 internal constant APPROVAL_TOPIC = uint256(keccak256("Approval(address,address,uint256)"));
     uint256 internal constant ORDER_SCHEDULED_TOPIC =
-        uint256(keccak256("OrderScheduled(uint256,address,address,uint256,uint64,uint64,uint32)"));
+        uint256(keccak256("OrderScheduled(uint256,address,uint256,uint64,uint64,uint32)"));
     uint256 internal constant ORDER_EXECUTED_TOPIC =
         uint256(keccak256("OrderExecuted(uint256,uint32,uint64,uint256)"));
     uint256 internal constant ORDER_FAILED_TOPIC =
         uint256(keccak256("OrderPaymentFailed(uint256,uint64,uint8)"));
     uint256 internal constant ORDER_CLOSED_TOPIC = uint256(keccak256("OrderClosed(uint256,uint8)"));
     uint256 internal constant SWEEP_CONFIGURED_TOPIC =
-        uint256(keccak256("SweepConfigured(address,address,uint256,uint16,bool)"));
+        uint256(keccak256("SweepConfigured(address,uint256,uint16,bool)"));
+    uint256 internal constant GUARD_TRIPPED_TOPIC = uint256(keccak256("GuardTripped(uint8)"));
+    uint256 internal constant GUARD_RESET_TOPIC = uint256(keccak256("GuardReset()"));
+
+    uint8 public constant KIND_ORDER = 1;
+    uint8 public constant KIND_SWEEP = 2;
+    uint8 public constant KIND_GUARD = 3;
+    uint8 public constant MANDATE_REVOKED = 11;
 
     uint256 public constant MAX_ACTIVE_ORDERS = 32;
     uint256 public constant MAX_BATCH = 8;
-    /// @dev Seconds to wait for the vault to confirm a requested execution before asking again.
     uint64 public constant PENDING_TIMEOUT = 90;
-    /// @dev Small grace period so clock skew between Reactive and the destination never yields NOT_DUE.
     uint64 public constant DUE_GRACE = 2;
 
     // ----------------------------------------------------------------- state
@@ -55,32 +59,34 @@ contract AutopilotReactive is AbstractReactive {
     uint256 public immutable destinationChainId;
 
     address public vault;
-    address public wallet; // the vault owner's wallet, watched for incoming deposits
-    uint256 public cronTopic; // which CRON interval to use while active
-    bool public cronSubscribed;
+    address public wallet;
+    address public token;
+    uint256 public cronTopic;
     uint64 public callbackGasLimit = 1_000_000;
+
+    bool public paused; // Safety Guard state (mirrored from / pushed to the vault)
+    bool public sweepActive;
+    uint256 public sweepMinAmount;
+    bool public cronSubscribed;
+    bool public depositWatch;
 
     mapping(uint256 => Mirror) public mirror;
     uint256[] internal _activeIds;
     mapping(uint256 => uint256) internal _activeIndexPlusOne;
 
-    address public sweepToken;
-    uint256 public sweepMinAmount;
-    bool public sweepSubscribed;
-
-    // Observability counters (visible on lasna.reactscan.net).
+    uint256 public nonce; // last callback request id
     uint256 public ticks;
-    uint256 public executionRequests;
-    uint256 public sweepRequests;
 
     // ---------------------------------------------------------------- events
 
-    event VaultSet(address indexed vault, address indexed wallet);
+    event VaultSet(address indexed vault, address indexed wallet, address indexed token);
     event OrderMirrored(uint256 indexed id, uint64 nextDue, bool active);
-    event CronToggled(uint256 indexed topic, bool subscribed);
-    event ExecutionRequested(uint256[] ids, uint256 indexed cronBlock);
-    event SweepWatchChanged(address indexed token, uint256 minAmount, bool watching);
-    event SweepRequested(bytes32 indexed originTxHash, uint256 originLogIndex, uint256 amount);
+    event SubscriptionChanged(string what, bool on);
+    event GuardStateChanged(bool paused, uint8 reason);
+    /// @notice One per callback request. `originTxHash` is the destination-chain tx that caused it (0 for CRON).
+    event FlowRequested(
+        uint256 indexed nonce, uint8 indexed kind, bytes32 indexed originTxHash, uint256 value, uint256[] ids
+    );
 
     error NotOwner();
     error AlreadySet();
@@ -91,8 +97,6 @@ contract AutopilotReactive is AbstractReactive {
         _;
     }
 
-    /// @param destinationChainId_ Chain where the vault lives (Base Sepolia 84532, Unichain Sepolia 1301, ...).
-    /// @param cronTopic_ CRON topic used while orders are active (e.g. Cron10 for demos, Cron100 for daily use).
     constructor(uint256 destinationChainId_, uint256 cronTopic_) payable {
         owner = msg.sender;
         destinationChainId = destinationChainId_;
@@ -101,21 +105,31 @@ contract AutopilotReactive is AbstractReactive {
 
     // ------------------------------------------------------------ owner API
 
-    /// @notice Wire the reactive contract to its vault. Can only be done once (vault trusts this contract immutably).
-    function setVault(address vault_, address wallet_) external onlyOwner {
+    function setVault(address vault_, address wallet_, address token_) external onlyOwner {
         if (vault != address(0)) revert AlreadySet();
-        if (vault_ == address(0) || wallet_ == address(0)) revert BadParam();
+        if (vault_ == address(0) || wallet_ == address(0) || token_ == address(0)) revert BadParam();
         vault = vault_;
         wallet = wallet_;
+        token = token_;
         _subscribeVault(ORDER_SCHEDULED_TOPIC);
         _subscribeVault(ORDER_EXECUTED_TOPIC);
         _subscribeVault(ORDER_FAILED_TOPIC);
         _subscribeVault(ORDER_CLOSED_TOPIC);
         _subscribeVault(SWEEP_CONFIGURED_TOPIC);
-        emit VaultSet(vault_, wallet_);
+        _subscribeVault(GUARD_TRIPPED_TOPIC);
+        _subscribeVault(GUARD_RESET_TOPIC);
+        // Mandate watch: Approval(owner = wallet, spender = vault).
+        SYSTEM.subscribe(
+            destinationChainId,
+            token_,
+            APPROVAL_TOPIC,
+            uint256(uint160(wallet_)),
+            uint256(uint160(vault_)),
+            REACTIVE_IGNORE
+        );
+        emit VaultSet(vault_, wallet_, token_);
     }
 
-    /// @notice Switch CRON cadence, e.g. Cron10 (~10s) for a demo and Cron100 (~100s) afterwards.
     function setCronTopic(uint256 topic_) external onlyOwner {
         if (topic_ == 0) revert BadParam();
         bool was = cronSubscribed;
@@ -129,7 +143,6 @@ contract AutopilotReactive is AbstractReactive {
         callbackGasLimit = gasLimit_;
     }
 
-    /// @notice Settle outstanding debt with the system contract from this contract's balance.
     function coverDebt() external {
         _coverDebt();
     }
@@ -150,11 +163,15 @@ contract AutopilotReactive is AbstractReactive {
 
         if (log_.contractAddress == vault) {
             _onVaultEvent(log_);
-        } else if (
-            sweepSubscribed && log_.contractAddress == sweepToken && log_.topic0 == TRANSFER_TOPIC
-                && log_.opCode == 3 && log_.topic2 == uint256(uint160(wallet))
-        ) {
-            _onIncomingTransfer(log_);
+        } else if (log_.contractAddress == token && log_.opCode == 3) {
+            if (log_.topic0 == TRANSFER_TOPIC && log_.topic2 == uint256(uint160(wallet))) {
+                _onDeposit(log_);
+            } else if (
+                log_.topic0 == APPROVAL_TOPIC && log_.topic1 == uint256(uint160(wallet))
+                    && log_.topic2 == uint256(uint160(vault))
+            ) {
+                _onApproval(log_);
+            }
         }
     }
 
@@ -164,7 +181,6 @@ contract AutopilotReactive is AbstractReactive {
         return _activeIds;
     }
 
-    /// @notice Orders the next CRON tick would request (view helper for dashboards and tests).
     function dueOrderIds(uint256 at_) public view returns (uint256[] memory ids, uint256 n) {
         ids = new uint256[](MAX_BATCH);
         for (uint256 i = 0; i < _activeIds.length && n < MAX_BATCH; ++i) {
@@ -175,10 +191,11 @@ contract AutopilotReactive is AbstractReactive {
         }
     }
 
-    // ------------------------------------------------------------- internals
+    // ------------------------------------------------------------- handlers
 
     function _onCron() internal {
         ticks += 1;
+        if (paused) return;
         (uint256[] memory buf, uint256 n) = dueOrderIds(block.timestamp);
         if (n == 0) return;
         uint256[] memory ids = new uint256[](n);
@@ -186,9 +203,39 @@ contract AutopilotReactive is AbstractReactive {
             ids[i] = buf[i];
             mirror[buf[i]].pendingSince = uint64(block.timestamp);
         }
-        executionRequests += 1;
-        _callback(abi.encodeWithSignature("executeDue(address,uint256[])", address(0), ids));
-        emit ExecutionRequested(ids, block.number);
+        uint256 id_ = ++nonce;
+        _callback(abi.encodeWithSignature("executeDue(address,uint256,uint256[])", address(0), id_, ids));
+        emit FlowRequested(id_, KIND_ORDER, bytes32(0), block.number, ids);
+    }
+
+    function _onDeposit(LogRecord calldata log_) internal {
+        if (paused || !sweepActive) return;
+        uint256 amount = abi.decode(log_.data, (uint256));
+        if (amount == 0 || amount < sweepMinAmount) return;
+        uint256 id_ = ++nonce;
+        _callback(
+            abi.encodeWithSignature(
+                "sweep(address,uint256,uint256,bytes32,uint256)",
+                address(0),
+                id_,
+                amount,
+                bytes32(log_.txHash),
+                log_.logIndex
+            )
+        );
+        emit FlowRequested(id_, KIND_SWEEP, bytes32(log_.txHash), amount, new uint256[](0));
+    }
+
+    /// @dev Circuit breaker: a revoked mandate stops everything on the reactive side first, then the vault.
+    function _onApproval(LogRecord calldata log_) internal {
+        uint256 value = abi.decode(log_.data, (uint256));
+        if (value != 0 || paused) return;
+        _setPaused(true, MANDATE_REVOKED);
+        uint256 id_ = ++nonce;
+        _callback(
+            abi.encodeWithSignature("tripGuard(address,uint256,uint8)", address(0), id_, MANDATE_REVOKED)
+        );
+        emit FlowRequested(id_, KIND_GUARD, bytes32(log_.txHash), 0, new uint256[](0));
     }
 
     function _onVaultEvent(LogRecord calldata log_) internal {
@@ -206,25 +253,57 @@ contract AutopilotReactive is AbstractReactive {
             _remove(log_.topic1);
         } else if (t == SWEEP_CONFIGURED_TOPIC) {
             (uint256 minAmount,, bool active) = abi.decode(log_.data, (uint256, uint16, bool));
-            _setSweepWatch(address(uint160(log_.topic1)), minAmount, active);
+            sweepActive = active;
+            sweepMinAmount = minAmount;
+            _sync();
+        } else if (t == GUARD_TRIPPED_TOPIC) {
+            _setPaused(true, uint8(log_.topic1));
+        } else if (t == GUARD_RESET_TOPIC) {
+            // Pending flags are stale after a pause; let due orders be requested again right away.
+            for (uint256 i = 0; i < _activeIds.length; ++i) {
+                mirror[_activeIds[i]].pendingSince = 0;
+            }
+            _setPaused(false, 0);
         }
     }
 
-    function _onIncomingTransfer(LogRecord calldata log_) internal {
-        uint256 amount = abi.decode(log_.data, (uint256));
-        if (amount < sweepMinAmount || amount == 0) return;
-        sweepRequests += 1;
-        _callback(
-            abi.encodeWithSignature(
-                "sweep(address,address,uint256,bytes32,uint256)",
-                address(0),
-                log_.contractAddress,
-                amount,
-                bytes32(log_.txHash),
-                log_.logIndex
-            )
-        );
-        emit SweepRequested(bytes32(log_.txHash), log_.logIndex, amount);
+    // ------------------------------------------------------------- internals
+
+    function _setPaused(bool p, uint8 reason) internal {
+        if (paused == p) return;
+        paused = p;
+        emit GuardStateChanged(p, reason);
+        _sync();
+    }
+
+    /// @dev Reconcile subscriptions with state: pay for CRON / deposit events only while they can matter.
+    function _sync() internal {
+        bool wantCron = !paused && _activeIds.length > 0;
+        if (wantCron != cronSubscribed) _setCron(wantCron);
+        bool wantWatch = !paused && sweepActive;
+        if (wantWatch != depositWatch) {
+            if (wantWatch) {
+                SYSTEM.subscribe(
+                    destinationChainId,
+                    token,
+                    TRANSFER_TOPIC,
+                    REACTIVE_IGNORE,
+                    uint256(uint160(wallet)),
+                    REACTIVE_IGNORE
+                );
+            } else {
+                SYSTEM.unsubscribe(
+                    destinationChainId,
+                    token,
+                    TRANSFER_TOPIC,
+                    REACTIVE_IGNORE,
+                    uint256(uint160(wallet)),
+                    REACTIVE_IGNORE
+                );
+            }
+            depositWatch = wantWatch;
+            emit SubscriptionChanged("deposits", wantWatch);
+        }
     }
 
     function _upsert(uint256 id, uint64 nextDue) internal {
@@ -232,13 +311,13 @@ contract AutopilotReactive is AbstractReactive {
         m.nextDue = nextDue;
         m.pendingSince = 0;
         if (!m.active) {
-            if (_activeIds.length >= MAX_ACTIVE_ORDERS) return; // vault keeps it; it just won't auto-run
+            if (_activeIds.length >= MAX_ACTIVE_ORDERS) return;
             m.active = true;
             _activeIds.push(id);
             _activeIndexPlusOne[id] = _activeIds.length;
         }
         emit OrderMirrored(id, nextDue, true);
-        if (!cronSubscribed) _setCron(true);
+        _sync();
     }
 
     function _remove(uint256 id) internal {
@@ -253,35 +332,7 @@ contract AutopilotReactive is AbstractReactive {
         _activeIds.pop();
         delete _activeIndexPlusOne[id];
         emit OrderMirrored(id, m.nextDue, false);
-        if (_activeIds.length == 0 && cronSubscribed) _setCron(false);
-    }
-
-    function _setSweepWatch(address token, uint256 minAmount, bool active) internal {
-        if (sweepSubscribed) {
-            SYSTEM.unsubscribe(
-                destinationChainId,
-                sweepToken,
-                TRANSFER_TOPIC,
-                REACTIVE_IGNORE,
-                uint256(uint160(wallet)),
-                REACTIVE_IGNORE
-            );
-            sweepSubscribed = false;
-        }
-        sweepToken = token;
-        sweepMinAmount = minAmount;
-        if (active) {
-            SYSTEM.subscribe(
-                destinationChainId,
-                token,
-                TRANSFER_TOPIC,
-                REACTIVE_IGNORE,
-                uint256(uint160(wallet)),
-                REACTIVE_IGNORE
-            );
-            sweepSubscribed = true;
-        }
-        emit SweepWatchChanged(token, minAmount, active);
+        _sync();
     }
 
     function _setCron(bool on) internal {
@@ -305,7 +356,7 @@ contract AutopilotReactive is AbstractReactive {
             );
         }
         cronSubscribed = on;
-        emit CronToggled(cronTopic, on);
+        emit SubscriptionChanged("cron", on);
     }
 
     function _subscribeVault(uint256 topic0) internal {
