@@ -1,0 +1,9 @@
+out/
+cache/
+broadcast/
+.env
+*.SECRET*
+*SECRET*
+DEPLOYER_SECRET.txt
+node_modules/
+deployments/local*

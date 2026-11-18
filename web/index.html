@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reactive Autopilot</title>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --fg:#e6edf3; --mut:#8b949e; --acc:#3fb950; --warn:#d29922; }
+  * { box-sizing:border-box } body { margin:0; font:15px/1.5 system-ui,sans-serif; background:var(--bg); color:var(--fg) }
+  main { max-width:960px; margin:0 auto; padding:24px }
+  h1 { margin:0 0 4px } .sub { color:var(--mut); margin-bottom:20px }
+  .card { background:var(--card); border:1px solid #30363d; border-radius:10px; padding:16px; margin-bottom:16px }
+  label { display:block; color:var(--mut); font-size:13px; margin-top:8px }
+  input { width:100%; padding:8px; background:#0d1117; color:var(--fg); border:1px solid #30363d; border-radius:6px; font-family:monospace }
+  button { margin-top:12px; padding:8px 14px; border:0; border-radius:6px; background:var(--acc); color:#000; font-weight:600; cursor:pointer }
+  button.sec { background:#30363d; color:var(--fg) }
+  table { width:100%; border-collapse:collapse; font-size:14px } td,th { padding:6px; border-bottom:1px solid #30363d; text-align:left }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px }
+  .stat b { display:block; font-size:22px } .ok { color:var(--acc) } .warn { color:var(--warn) } code { font-size:12px }
+  #log { white-space:pre-wrap; font-family:monospace; font-size:12px; color:var(--mut) }
+</style>
+</head>
+<body>
+<main>
+  <h1>⚡ Reactive Autopilot</h1>
+  <div class="sub">Standing orders and auto-save for your wallet, run by a reactive contract on Reactive Network. No bots, no keepers, no custody.</div>
+
+  <div class="card">
+    <div class="grid">
+      <div><label>Vault (destination chain)</label><input id="vault" placeholder="0x…" /></div>
+      <div><label>Reactive contract (Lasna)</label><input id="reactive" placeholder="0x…" /></div>
+      <div><label>Token</label><input id="token" placeholder="0x…" /></div>
+    </div>
+    <div class="grid">
+      <div><label>Destination RPC</label><input id="destRpc" value="https://sepolia.base.org" /></div>
+      <div><label>Lasna RPC</label><input id="lasnaRpc" value="https://lasna-rpc.rnk.dev/" /></div>
+    </div>
+    <button onclick="refresh()">Load</button>
+    <button class="sec" onclick="loadDeployment()">Load deployments/base-sepolia.json</button>
+  </div>
+
+  <div class="card grid" id="stats"></div>
+
+  <div class="card">
+    <h3>Standing orders</h3>
+    <table><thead><tr><th>#</th><th>Payee</th><th>Amount</th><th>Every</th><th>Next due</th><th>Runs</th><th>Status</th><th></th></tr></thead><tbody id="orders"></tbody></table>
+  </div>
+
+  <div class="card">
+    <h3>New standing order</h3>
+    <div class="grid">
+      <div><label>Payee</label><input id="payee" placeholder="0x…" /></div>
+      <div><label>Amount (tokens, 6 decimals)</label><input id="amount" value="25" /></div>
+      <div><label>Interval (seconds)</label><input id="interval" value="60" /></div>
+      <div><label>Max runs (0 = forever)</label><input id="maxRuns" value="3" /></div>
+    </div>
+    <button onclick="approve()">1. Approve vault (2,000)</button>
+    <button onclick="createOrder()">2. Create order</button>
+  </div>
+
+  <div class="card">
+    <h3>Auto-save</h3>
+    <div id="sweep" class="sub"></div>
+    <div class="grid">
+      <div><label>Savings address</label><input id="savings" placeholder="0x…" /></div>
+      <div><label>Only deposits ≥ (tokens)</label><input id="minAmount" value="100" /></div>
+      <div><label>Save (%)</label><input id="pct" value="20" /></div>
+    </div>
+    <button onclick="configureSweep(true)">Enable</button>
+    <button class="sec" onclick="configureSweep(false)">Disable</button>
+    <button class="sec" onclick="mintTest()">Simulate salary (mint 1,000 tUSD)</button>
+  </div>
+  <div class="card"><div id="log"></div></div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const log = (m) => ($("log").textContent = `[${new Date().toLocaleTimeString()}] ${m}\n` + $("log").textContent);
+const pad = (h) => h.replace(/^0x/, "").padStart(64, "0");
+const enc = { addr: (a) => pad(a.toLowerCase()), uint: (n) => pad(BigInt(n).toString(16)), bool: (b) => pad(b ? "1" : "0") };
+const word = (d, i) => BigInt("0x" + d.slice(2 + 64 * i, 2 + 64 * (i + 1)));
+const SEL = { orderCount:"0x2453ffa8", getOrder:"0xd09ef241", sweepRule:"0xa7d43cb7", createOrder:"0x06fc98a4", cancelOrder:"0x514fcac7",
+  configureSweep:"0x4280c4e1", approve:"0x095ea7b3", mint:"0x40c10f19", ticks:"0x2cfffaf6", executionRequests:"0x212c20fd",
+  sweepRequests:"0xa36ae391", cronSubscribed:"0xc0d062c6", sweepSubscribed:"0x01c29120", activeOrderIds:"0x5292d73b" };
+async function call(rpc, to, data) {
+  const r = await fetch(rpc, { method:"POST", headers:{"content-type":"application/json"},
+    body: JSON.stringify({ jsonrpc:"2.0", id:1, method:"eth_call", params:[{ to, data }, "latest"] }) });
+  const j = await r.json(); if (j.error) throw new Error(j.error.message); return j.result;
+}
+const fmt6 = (v) => (Number(v) / 1e6).toLocaleString();
+const short = (a) => a.slice(0, 6) + "…" + a.slice(-4);
+async function loadDeployment() {
+  try { const d = await (await fetch("../deployments/base-sepolia.json")).json();
+    $("vault").value = d.contracts.autopilotVault; $("reactive").value = d.contracts.autopilotReactive; $("token").value = d.contracts.mockUSD; refresh();
+  } catch (e) { log("no deployment file yet: " + e.message); }
+}
+async function refresh() {
+  const D = $("destRpc").value, L = $("lasnaRpc").value, V = $("vault").value, R = $("reactive").value;
+  try {
+    const n = Number(BigInt(await call(D, V, SEL.orderCount)));
+    const now = Math.floor(Date.now() / 1000); let rows = "";
+    for (let i = 0; i < n; i++) {
+      const d = await call(D, V, SEL.getOrder + enc.uint(i));
+      const o = { payee:"0x"+d.slice(2+64+24,2+128), amount:word(d,2), interval:word(d,3), nextDue:Number(word(d,4)), runs:word(d,5), maxRuns:word(d,6), failures:word(d,7), active:word(d,8)===1n };
+      const due = o.nextDue - now;
+      rows += `<tr><td>${i}</td><td><code>${short(o.payee)}</code></td><td>${fmt6(o.amount)}</td><td>${o.interval}s</td>
+        <td>${o.active ? (due > 0 ? "in " + due + "s" : "<span class=warn>due now</span>") : "–"}</td><td>${o.runs}${o.maxRuns ? "/" + o.maxRuns : ""}</td>
+        <td>${o.active ? "<span class=ok>active</span>" : "closed"}${o.failures ? " ⚠" + o.failures : ""}</td>
+        <td>${o.active ? `<button class=sec onclick="cancel(${i})">Cancel</button>` : ""}</td></tr>`;
+    }
+    $("orders").innerHTML = rows || "<tr><td colspan=8>No orders yet</td></tr>";
+    const s = await call(D, V, SEL.sweepRule);
+    $("sweep").innerHTML = word(s,4) === 1n ? `<span class=ok>On</span>: save ${Number(word(s,3))/100}% of every deposit ≥ ${fmt6(word(s,2))} to <code>${short("0x"+s.slice(2+64+24,2+128))}</code>` : "Off";
+    if (R) {
+      const [t, e, sw, cr, ss] = await Promise.all(["ticks","executionRequests","sweepRequests","cronSubscribed","sweepSubscribed"].map((k) => call(L, R, SEL[k])));
+      $("stats").innerHTML = [["CRON ticks seen", BigInt(t)], ["Execution callbacks", BigInt(e)], ["Sweep callbacks", BigInt(sw)],
+        ["CRON subscription", BigInt(cr) ? "on" : "off (idle, free)"], ["Deposit watch", BigInt(ss) ? "on" : "off"]]
+        .map(([k, v]) => `<div class=stat><span class=sub>${k}</span><b>${v}</b></div>`).join("");
+    }
+  } catch (e) { log("refresh failed: " + e.message); }
+}
+async function send(to, data) {
+  if (!window.ethereum) return log("No wallet found (install MetaMask)");
+  const [from] = await ethereum.request({ method: "eth_requestAccounts" });
+  const hash = await ethereum.request({ method: "eth_sendTransaction", params: [{ from, to, data }] });
+  log("sent " + hash); return hash;
+}
+const units = (x) => BigInt(Math.round(parseFloat(x) * 1e6));
+const approve = () => send($("token").value, SEL.approve + enc.addr($("vault").value) + enc.uint(2000n * 10n ** 6n));
+const createOrder = () => send($("vault").value, SEL.createOrder + enc.addr($("token").value) + enc.addr($("payee").value) +
+  enc.uint(units($("amount").value)) + enc.uint($("interval").value) + enc.uint(0) + enc.uint($("maxRuns").value));
+const cancel = (i) => send($("vault").value, SEL.cancelOrder + enc.uint(i));
+const configureSweep = (on) => send($("vault").value, SEL.configureSweep + enc.addr(on ? $("token").value : "0x0") +
+  enc.addr(on ? $("savings").value : "0x0") + enc.uint(on ? units($("minAmount").value) : 0) + enc.uint(on ? Math.round(parseFloat($("pct").value) * 100) : 0) + enc.bool(on));
+async function mintTest() { const [a] = await ethereum.request({ method: "eth_requestAccounts" }); send($("token").value, SEL.mint + enc.addr(a) + enc.uint(1000n * 10n ** 6n)); }
+setInterval(() => $("vault").value && refresh(), 5000);
+loadDeployment();
+</script>
+</body>
+</html>
