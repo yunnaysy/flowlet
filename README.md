@@ -10,7 +10,7 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 
 | | |
 |---|---|
-| ![Home control center](docs/img/mobile-home-after-demo.png) | ![Execution proof for one loop](docs/img/mobile-proof-live.png) |
+| ![Home: status, metrics, my automations](docs/img/v2-mobile-home-local.png) | ![Automation lifecycle timeline](docs/img/v2-mobile-timeline.png) |
 
 **Demo video:** [docs/video/flowlet-demo.mp4](docs/video/flowlet-demo.mp4) (1:47, English captions, no voiceover, recorded from the live site in no-wallet replay mode).
 
@@ -33,7 +33,7 @@ Every loop leaves three transactions you can open: the **origin** on Sepolia, th
 |---|---|---|
 | **Connect wallet · Try live** | MetaMask on Ethereum Sepolia. The vault owner can run the demo loop live; any other wallet gets a read-only view and the replay. | `LIVE TESTNET` (warns on the wrong network) |
 | **Explore demo without wallet** | Replays the recorded Sepolia + Lasna run step by step. Every link is a real transaction; nothing is sent. | `DEMO MODE` |
-| **Watch the 60-second walkthrough** | The in-app link opens the written [60-second demo](#60-second-demo) below. A recorded demo video is in `docs/video/`. | |
+| **Watch the 2-minute walkthrough** | The in-app link opens the recorded demo video ([docs/video/flowlet-demo.mp4](docs/video/flowlet-demo.mp4)). The written [60-second demo](#60-second-demo) is below. | |
 
 The local rehearsal (`?net=local`, two Anvil chains plus a stand-in relayer) is labelled `LOCAL REHEARSAL · private test chains on this computer · not real data`.
 
@@ -55,13 +55,18 @@ Flowlet looks and feels like a native app on a phone, without an APK. Open https
 - **Offline:** the shell loads offline; automation state is never cached.
 - **Fonts:** Cabinet Grotesk + Switzer from Fontshare (self-hosted, not committed per their license) and Geist Mono. Fetch them once with `bash scripts/fetch-fonts.sh web/fonts cabinet-grotesk@500 cabinet-grotesk@700 cabinet-grotesk@800 switzer@400 switzer@500 switzer@600`.
 
+White-first redesign (Nov 2026): a bubble mark, four tabs (Home · Flows · Activity · Settings), a Basic view with an Advanced section for contracts, chains and hashes, and a guided Create flow that marks unsupported triggers "Coming soon".
+
 | Phone | Phone | Phone | Phone |
 |---|---|---|---|
-| ![Welcome](docs/img/mobile-welcome.png) Welcome: three paths | ![Live vault, revoked](docs/img/mobile-home-live-readonly.png) Live vault: access revoked | ![Demo loop replay](docs/img/mobile-demo-replay.png) Demo loop (replay) | ![Execution proof](docs/img/mobile-proof-live.png) Execution proof |
+| ![Home](docs/img/v2-mobile-home.png) Home (live, read-only) | ![Flows](docs/img/v2-mobile-flows.png) Flows: View / Create / Edit / Pause | ![Detail](docs/img/v2-mobile-detail-adv.png) Automation detail with Advanced | ![Activity](docs/img/v2-mobile-activity.png) Activity filters |
+| ![Timeline](docs/img/v2-mobile-timeline.png) Event detected → Trigger verified → Callback sent → Execution confirmed | ![Create](docs/img/v2-mobile-create-1.png) Guided Create | ![Activated](docs/img/v2-create-done.png) Activated (local rehearsal) | ![Settings](docs/img/v2-mobile-settings.png) Settings: Wallet / Automation / Preferences / About |
 
 | Desktop | Desktop | Tablet |
 |---|---|---|
-| ![Desktop home](docs/img/desktop-home.png) Control center (local rehearsal) | ![Desktop proof](docs/img/desktop-proof.png) Before → after | ![Tablet](docs/img/tablet-home.png) |
+| ![Desktop home](docs/img/v2-desktop-home.png) Home | ![Desktop flows](docs/img/v2-desktop-flows.png) Flows | ![Tablet](docs/img/v2-tablet-home.png) |
+
+Icon: ![Icons](docs/img/icons-homescreen-mockup.png)
 
 ## What it does
 

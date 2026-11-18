@@ -127,7 +127,7 @@ function initWelcome() {
   const done = () => localStorage.setItem(WELCOMED, "1");
   $("wSkip")?.addEventListener("click", done);
   $("wConnect")?.addEventListener("click", () => { done(); location.hash = "#/home"; setTimeout(() => $("connectBtn")?.click(), 50); });
-  $("wDemo")?.addEventListener("click", () => { done(); location.hash = "#/home"; setTimeout(() => { $("demoBox")?.scrollIntoView({ block: "start" }); window.dispatchEvent(new CustomEvent("flowlet:runreplay")); }, 120); });
+  $("wDemo")?.addEventListener("click", () => { done(); location.hash = "#/demo"; setTimeout(() => { $("demoBox")?.scrollIntoView({ block: "start" }); window.dispatchEvent(new CustomEvent("flowlet:runreplay")); }, 120); });
 }
 function netSheet() {
   if (!conf) return;

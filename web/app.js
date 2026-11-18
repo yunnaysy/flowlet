@@ -84,7 +84,7 @@ async function loadConfig() {
   const a = (base, addr) => hashChip(base, addr, "address");
   const contractsHtml = `<span>Vault ${a(dx, cfg.vault)}</span><span>Reactive contract ${a(lx, cfg.reactive)}</span><span>${TOK} ${a(dx, cfg.token)}</span><span>Callback proxy ${a(dx, cfg.callbackProxy)}</span>`;
   if ($("contracts")) $("contracts").innerHTML = contractsHtml;
-  emit("config", { isLocal, destChainId: d.destinationChainId, destName, owner: cfg.wallet, explorers: { dest: dx, lasna: lx } });
+  emit("config", { isLocal, destChainId: d.destinationChainId, destName, owner: cfg.wallet, explorers: { dest: dx, lasna: lx }, addrs: { vault: cfg.vault, reactive: cfg.reactive, token: cfg.token, callbackProxy: cfg.callbackProxy } });
   $("footer").innerHTML = `<span>Vault ${a(dx, cfg.vault)}</span><span>Reactive contract ${a(lx, cfg.reactive)}</span><span>${TOK} ${a(dx, cfg.token)}</span><span>Callback proxy ${a(dx, cfg.callbackProxy)}</span><p>Flowlet is open source. Testnet only.</p>`;
 }
 
@@ -334,7 +334,7 @@ const seen = new Set(); let firstTrace = true; let lastTraceHtml = "";
 async function refreshTrace() {
   const { rows, state } = await buildTrace(cfg, traceState);
   traceState = state; lastRows = rows;
-  emit("trace", { rows: rows.map((r) => ({ nonce: r.nonce, kind: Number(r.kind), kindLabel: r.kindLabel, pending: !!r.pending, origin: r.origin ? { label: r.origin.label, tx: r.origin.tx, ts: r.origin.ts, isDueTime: !!r.origin.isDueTime } : null, reactive: r.reactive ? { tx: r.reactive.tx, ts: r.reactive.ts } : null, callback: r.callback ? { tx: r.callback.tx, ts: r.callback.ts, viaProxy: r.callback.viaProxy, sentByWallet: r.callback.sentByWallet } : null, decisions: (r.decisions ?? []).map((x) => ({ label: x.label, executed: String(x.executed ?? 0), requested: String(x.requested ?? 0), reason: x.reason, text: x.text })), actions: (r.actions ?? []).map((a) => ({ amount: fmtAmount(a.amount), to: a.to })), change: (r.change ?? []).map((c) => ({ ...c, delta: c.delta != null ? String(c.delta) : undefined })), latency: r.latency ?? null })) });
+  emit("trace", { rows: rows.map((r) => ({ nonce: r.nonce, kind: Number(r.kind), kindLabel: r.kindLabel, pending: !!r.pending, origin: r.origin ? { label: r.origin.label, tx: r.origin.tx, ts: r.origin.ts, isDueTime: !!r.origin.isDueTime } : null, reactive: r.reactive ? { tx: r.reactive.tx, ts: r.reactive.ts } : null, callback: r.callback ? { tx: r.callback.tx, ts: r.callback.ts, viaProxy: r.callback.viaProxy, sentByWallet: r.callback.sentByWallet } : null, decisions: (r.decisions ?? []).map((x) => ({ ruleId: x.ruleId != null ? String(x.ruleId) : undefined, kind: x.kind != null ? Number(x.kind) : undefined, label: x.label, executed: String(x.executed ?? 0), requested: String(x.requested ?? 0), reason: x.reason, text: x.text })), actions: (r.actions ?? []).map((a) => ({ amount: fmtAmount(a.amount), to: a.to })), change: (r.change ?? []).map((c) => ({ ...c, delta: c.delta != null ? String(c.delta) : undefined })), latency: r.latency ?? null })) });
   $("traceStatus").innerHTML = `<span class="dot" aria-hidden="true"></span>${rows.length} reactive loop${rows.length === 1 ? "" : "s"}, live`;
   if (!rows.length) return;
   const fresh = new Set(rows.filter((r) => !seen.has(`${r.nonce}:${r.pending ? 0 : 1}`) && !firstTrace).map((r) => r.nonce));

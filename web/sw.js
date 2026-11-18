@@ -1,7 +1,7 @@
 // Flowlet service worker: keeps the app shell (HTML, CSS, JS, icons) available offline.
 // Never caches chain state: RPC calls go to other origins and are not intercepted, and deployments/*.json is always fetched live.
-const VERSION = "flowlet-shell-v4";
-const SHELL = ["./", "index.html", "style.css", "app-shell.css", "app.js", "shell.js", "control.js", "trace.js", "recorded-loops.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "brand/metamask-fox.svg",
+const VERSION = "flowlet-shell-v5";
+const SHELL = ["./", "index.html", "style.css", "app-shell.css", "app.js", "shell.js", "control.js", "flows.js", "trace.js", "recorded-loops.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "favicon.svg", "brand/metamask-fox.svg",
   "fonts/fonts.css", "fonts/switzer-400.woff2", "fonts/switzer-500.woff2", "fonts/switzer-600.woff2", "fonts/cabinet-grotesk-700.woff2", "fonts/geist-mono-var.woff2"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });

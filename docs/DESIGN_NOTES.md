@@ -2,6 +2,21 @@
 
 **Direction: "Clear current"** (light, since Nov 2026). Flowlet is automation you can watch working. It now reads like a modern iOS fintech app, not a neon Web3 dashboard: a soft off-white canvas, pure white floating cards, near-black text and one mint/teal accent. The brand is still a current: a wave mark and a flow rail (Your wallet → Reactive brain → Vault rules). The first version was dark ("Night current"); see the light-direction section below for why it moved.
 
+
+## Redesign v2: white-first (Nov 2026) — current
+
+This section supersedes the layout above where they conflict.
+
+- **Look:** a white UI (`--bg:#FAFBFA`, cards `#FFFFFF`). `#066A4F` is reserved for important states and actions; mint accents are `#E4F4EC` / `#A8E6CE`.
+- **Brand mark:** bubbles, a large white bubble and two mint bubbles on `#066A4F`. Masters are in `docs/brand/`; the favicon, PWA icons and OG image are generated from them.
+- **Navigation:** Home · Flows · Activity · Settings (the demo loop has its own `#/demo` screen, reached from Home).
+- **Home:** a status card (Watching / Triggered / Executed), metric cards (Active flows, Executions, Allowance), a **My automations** preview, **Recent execution**, **Pause all** and a demo tile.
+- **Flows:** one card per automation (rent standing orders, Auto-save, Safety Guard) with View / Create / Edit / Pause. **Pause** is *Pause all*: the vault has no per-rule pause, and the UI says so.
+- **Automation detail:** a Basic view (what it does, trigger, amount, status), a lifecycle timeline, and an **Advanced** section: reactive contract, event source, callback proxy, chains (Sepolia / Lasna), addresses, hashes and proof links.
+- **Create:** a 5-step guided flow (type → trigger → amount → safety → review). Only triggers the contracts support can be activated; price and whale triggers are labelled **Coming soon**. Activation submits the existing on-chain rule forms (owner only).
+- **Activity:** filters Watching / Triggered / Executed / Failed / Paused, and a lifecycle timeline per loop: Event detected → Trigger verified → Callback sent → Execution confirmed. When no live loop exists, the recorded run is shown with a clear "recorded" label.
+- **Settings:** Wallet / Automation (Pause all, Funds & permissions) / Preferences (Notifications — *coming soon*, Security & privacy) / About (About Flowlet, Testnet information).
+
 ## Palette
 
 | Token | Hex | Use |

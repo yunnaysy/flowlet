@@ -7,7 +7,7 @@
 <meta name="description" content="Standing orders, auto-save and a Safety Guard for your wallet, run by a reactive contract on Reactive Network. Testnet only." />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https: http://127.0.0.1:18545 http://127.0.0.1:18546; object-src 'none'; base-uri 'none'; form-action 'none'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
-<meta name="theme-color" content="#F7F7F8" />
+<meta name="theme-color" content="#FFFFFF" />
 <link rel="manifest" href="manifest.webmanifest" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -16,10 +16,17 @@
 <meta name="application-name" content="Flowlet" />
 <meta name="format-detection" content="telephone=no" />
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Flowlet · Your wallet. Your rules." />
+    <meta property="og:description" content="Standing orders, auto-save and a Safety Guard, run by a reactive contract on Reactive Network. Testnet only." />
+    <meta property="og:url" content="https://flowlet-kappa.vercel.app/" />
+    <meta property="og:image" content="https://flowlet-kappa.vercel.app/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
 <link rel="preload" href="fonts/switzer-400.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="fonts/cabinet-grotesk-700.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="fonts/fonts.css" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22%230A0E13%22/%3E%3Cpath d=%22M7 12c4-4 7 4 11 0s5-2 7 0M7 20c4-4 7 4 11 0s5-2 7 0%22 fill=%22none%22 stroke=%22%235BE3B0%22 stroke-width=%222.4%22 stroke-linecap=%22round%22/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="style.css" />
 <link rel="stylesheet" href="app-shell.css" />
 </head>
@@ -30,7 +37,7 @@
 <aside class="side" id="side">
   <div class="side-head">
   <a class="brand" href="#/home" aria-label="Flowlet home">
-    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12c4-4 7 4 11 0s6-3 11 0M5 20c4-4 7 4 11 0s6-3 11 0" /></svg>
+    <svg class="logo bubbles" viewBox="0 0 32 32" aria-hidden="true"><circle cx="12.8" cy="18.9" r="7.2"/><circle class="b2" cx="21.6" cy="10.6" r="4.6"/><circle class="b2" cx="24" cy="21.4" r="2.5"/></svg>
     <span class="brand-word">Flowlet</span>
   </a>
   <button type="button" id="sideToggle" class="side-toggle" aria-controls="side" aria-expanded="true" aria-label="Collapse sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg></button>
@@ -56,7 +63,7 @@
 <div class="main-col">
 <header class="top">
   <a class="brand brand-m" href="#/home" aria-label="Flowlet home">
-    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12c4-4 7 4 11 0s6-3 11 0M5 20c4-4 7 4 11 0s6-3 11 0" /></svg>
+    <svg class="logo bubbles" viewBox="0 0 32 32" aria-hidden="true"><circle cx="12.8" cy="18.9" r="7.2"/><circle class="b2" cx="21.6" cy="10.6" r="4.6"/><circle class="b2" cx="24" cy="21.4" r="2.5"/></svg>
     <span class="brand-word">Flowlet</span>
   </a>
   <span class="appbar-title" id="appbarTitle" aria-hidden="true">Status</span>
@@ -70,7 +77,7 @@
 
 <main id="main" tabindex="-1" class="dash">
   <h1 class="sr-only" id="tabH1" hidden>Flowlet</h1>
-  <section class="card status-card" id="autoStatus" data-tabs="home" aria-labelledby="asTitle">
+  <section class="card status-card" id="autoStatus" data-tabs="home demo" aria-labelledby="asTitle">
     <div class="as-head">
       <span class="as-orb" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5M12 20.5A8.5 8.5 0 0 1 3.5 12"/></svg></span>
       <div class="as-txt"><h2 id="asTitle" class="as-title">Checking your automation…</h2><p id="asSub" class="as-sub muted">Reading the vault and the reactive contract.</p></div>
@@ -102,23 +109,20 @@
     <ul class="paths" aria-label="Ways to try Flowlet">
       <li class="path"><span class="path-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5V7a2 2 0 0 1 2-2h10"/><rect x="4" y="7.5" width="16" height="11.5" rx="2.5"/><path d="M15.5 13.25h1.5"/></svg></span><span class="path-txt"><b>Connect wallet · Try live</b><small id="wConnectSub">MetaMask on Ethereum Sepolia. No sign-up, email or password.</small></span><button type="button" class="btn primary" id="wConnect">Connect</button></li>
       <li class="path"><span class="path-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.2 5.1A.8.8 0 0 0 8 5.8z"/></svg></span><span class="path-txt"><b>Explore demo without wallet</b><small>A guided replay of real, recorded testnet transactions.</small></span><button type="button" class="btn ghost" id="wDemo">Start</button></li>
-      <li class="path"><span class="path-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/> <path d="M14 2v4a2 2 0 0 0 2 2h4"/> <path d="M10 9H8"/> <path d="M16 13H8"/> <path d="M16 17H8"/></svg></span><span class="path-txt"><b>Watch the 60-second walkthrough</b><small>No video yet: opens the written 60-second script in the README.</small></span><a class="btn ghost" href="https://github.com/yunnaysy/flowlet#60-second-demo" target="_blank" rel="noopener">Open<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/> <path d="M10 14 21 3"/> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></li>
+      <li class="path"><span class="path-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/> <path d="M14 2v4a2 2 0 0 0 2 2h4"/> <path d="M10 9H8"/> <path d="M16 13H8"/> <path d="M16 17H8"/></svg></span><span class="path-txt"><b>Watch the 2-minute walkthrough</b><small>A captioned video of the demo loop, recorded on the live site.</small></span><a class="btn ghost" href="https://github.com/yunnaysy/flowlet/blob/main/docs/video/flowlet-demo.mp4" target="_blank" rel="noopener">Watch<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/> <path d="M10 14 21 3"/> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></li>
     </ul>
     <p class="small muted w-skip"><a href="#/home" id="wSkip">Go to the control center</a></p>
   </section>
 
-  <section class="cc-row" data-tabs="home" aria-label="Your automation">
-    <section class="card cc-rule" id="ruleCard" aria-labelledby="rcTitle">
-      <div class="section-head"><h2 id="rcTitle" class="h3">What rule is running?</h2><span id="rcState" class="pill soft">…</span></div>
-      <dl class="wtgn" id="ruleWTGN"><div><dt>When</dt><dd>Reading the vault…</dd></div></dl>
-    </section>
-    <section class="card cc-last" id="lastCard" aria-labelledby="lcTitle">
-      <div class="section-head"><h2 id="lcTitle" class="h3">Last automation</h2><span id="lcWhen" class="small muted"></span></div>
+  <section class="metrics" id="homeMetrics" data-tabs="home" aria-label="At a glance"></section>
+  <section class="card" id="homeFlows" data-tabs="home" aria-labelledby="hfTitle"><div class="section-head"><h2 id="hfTitle" class="h3">My automations</h2><a class="small" href="#/flows">See all</a></div><div id="homeFlowsBody"><p class="muted small">Reading the vault…</p></div></section>
+  <section class="card cc-last" id="lastCard" data-tabs="home" aria-labelledby="lcTitle">
+      <div class="section-head"><h2 id="lcTitle" class="h3">Recent execution</h2><span id="lcWhen" class="small muted"></span></div>
       <div id="lastBody"><p class="muted small">Reading the on-chain trace…</p></div>
     </section>
-  </section>
+  <a class="card tile" id="demoTile" href="#/demo" data-tabs="home"><span class="tile-ic" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M8 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.2 5.1A.8.8 0 0 0 8 5.8z"/></svg></span><span class="tile-txt"><b>Run demo loop</b><small>Five steps, ending in a real reactive loop. No wallet needed for the replay.</small></span><span class="tile-go" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span></a>
 
-  <section class="card demo-box" id="demoBox" data-tabs="home" aria-labelledby="dbTitle">
+  <section class="card demo-box" id="demoBox" data-tabs="demo" aria-labelledby="dbTitle">
     <div class="demo-head"><h2 class="h3" id="dbTitle">Run demo loop</h2><span id="demoCount" class="mono muted">5 steps</span></div>
     <p class="small muted demo-note" id="demoNote">One click, start to finish: five steps ending in the three transactions of a real reactive loop.</p>
     <ol id="demoSteps" class="steps"></ol>
@@ -127,13 +131,14 @@
     <div class="breaker" id="breakerBox" hidden><p class="small muted">Optional: revoke the allowance and watch the reactive contract pause itself and the vault.</p><button type="button" class="btn ghost" id="runBreaker">Test the circuit breaker</button></div>
   </section>
 
-  <section class="stats" id="stats" aria-label="Balances" data-tabs="home"></section>
   <div id="srStatus" class="sr-only" role="status" aria-live="polite"></div>
 
-  <section class="card" id="proof" data-tabs="activity" data-dtabs="home">
+  <section id="actList" data-tabs="activity" aria-label="Automation activity"></section>
+
+  <section class="card" id="proof" data-tabs="activity">
     <div class="section-head">
       <div>
-        <h2>Live Reactive proof</h2>
+        <h2>Full on-chain trace</h2>
         <p class="muted">Every row is rebuilt from on-chain logs: origin event → Reactive on Lasna → callback → rule → transfer. Nothing on this page moves funds.</p>
       </div>
       <span id="traceStatus" class="pill soft">waiting</span>
@@ -141,19 +146,11 @@
     <div id="timeline" class="timeline"><p class="empty"><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>No reactive activity yet. Press <b>Run demo</b> to watch a rule fire, or create one under Your rules.</p></div>
   </section>
 
-  <div class="grid2" id="brainGuard" data-tabs="flows" data-dtabs="home">
-    <section class="card">
-      <h2>Reactive brain <small class="muted">on Lasna</small></h2>
-      <ul id="subs" class="subs"></ul>
-    </section>
-    <section class="card" id="guard">
-      <h2>Safety Guard</h2>
-      <div id="guardBox"></div>
-    </section>
-  </div>
+  <section id="flowsList" data-tabs="flows" aria-label="Automations"></section>
 
   <section class="set-wrap" id="settingsList" data-tabs="settings" aria-label="Settings"></section>
 
+  <section class="stats" id="stats" aria-label="Balances" data-tabs="settings"></section>
   <section class="card funds" id="funds" data-tabs="settings">
     <div class="section-head">
       <div><h2>Funds and permissions</h2><p class="muted">Flowlet doesn't hold your money. It holds your rules. Know exactly what the automation can touch.</p></div>
@@ -232,7 +229,24 @@
     </details>
   </section>
 
-  <section class="card" id="contractsCard" data-tabs="activity">
+  <section class="card cc-rule" id="ruleCard" data-tabs="flows" aria-labelledby="rcTitle">
+      <div class="section-head"><h2 id="rcTitle" class="h3">What is running right now?</h2><span id="rcState" class="pill soft">…</span></div>
+      <dl class="wtgn" id="ruleWTGN"><div><dt>When</dt><dd>Reading the vault…</dd></div></dl>
+    </section>
+  <details class="card adv" id="brainAdv" data-tabs="flows"><summary><span>Advanced · reactive contract and Safety Guard</span></summary>
+  <div class="grid2" id="brainGuard">
+    <section class="card">
+      <h2>Reactive brain <small class="muted">on Lasna</small></h2>
+      <ul id="subs" class="subs"></ul>
+    </section>
+    <section class="card" id="guard">
+      <h2>Safety Guard</h2>
+      <div id="guardBox"></div>
+    </section>
+  </div>
+  </details>
+
+  <section class="card" id="contractsCard" data-tabs="none" hidden>
     <h2>Contracts</h2>
     <p class="muted">Everything Flowlet does is public and checkable on the explorers.</p>
     <div id="contracts" class="contracts"></div>
@@ -243,10 +257,10 @@
     <div id="installBox" class="install-box"></div>
   </section>
 
-  <section class="card" id="logCard" data-tabs="activity">
-    <h2>Activity log</h2>
+  <details class="card adv" id="logCard" data-tabs="activity">
+    <summary><span>Activity log (this page)</span></summary>
     <div id="log" class="log" role="log" aria-live="off" tabindex="0" aria-label="Activity log"></div>
-  </section>
+  </details>
 
   <footer id="footer" class="muted"></footer>
 </main>
@@ -255,5 +269,6 @@
 <script type="module" src="app.js"></script>
 <script type="module" src="shell.js"></script>
 <script type="module" src="control.js"></script>
+<script type="module" src="flows.js"></script>
 </body>
 </html>

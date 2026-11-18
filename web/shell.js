@@ -31,8 +31,8 @@ const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.
 const isMobileDevice = () => /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent) || (window.matchMedia?.("(pointer: coarse)").matches && innerWidth <= 1024);
 
 // ------------------------------------------------------------------ tabs
-const TABS = ["home", "flows", "activity", "settings", "welcome"];
-const TITLE = { home: "Home", flows: "Flows", activity: "Activity", settings: "Settings", welcome: "Welcome" };
+const TABS = ["home", "flows", "activity", "settings", "welcome", "demo"];
+const TITLE = { home: "Home", flows: "Flows", activity: "Activity", settings: "Settings", welcome: "Welcome", demo: "Demo loop" };
 // Old links keep working: #/status, #/timeline, #/proof and the pre-tab anchors land on the tab that now holds them.
 const OLD_TABS = { status: "home", timeline: "activity", proof: "activity" };
 const LEGACY = { proof: ["activity", "proof"], guard: ["flows", "guard"], funds: ["settings", "funds"], "rules-card": ["flows", "rules-card"] };
@@ -48,7 +48,7 @@ function applyTab() {
     const on = el.dataset.tabs.split(" ").includes(tab) || (desktop.matches && (el.dataset.dtabs || "").split(" ").includes(tab));
     el.classList.toggle("tab-hidden", !on);
   }
-  for (const a of document.querySelectorAll("#tabs a")) { const on = a.dataset.tab === tab; a.classList.toggle("active", on); on ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"); }
+  for (const a of document.querySelectorAll("#tabs a")) { const on = a.dataset.tab === (tab === "demo" ? "home" : tab); a.classList.toggle("active", on); on ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"); }
   $("appbarTitle").textContent = TITLE[tab];
   // The hero h1 only shows on Home; other tabs get a screen-reader h1 so every tab has one.
   const th = $("tabH1"); if (th) { th.textContent = `Flowlet ${TITLE[tab]}`; th.hidden = tab === "welcome"; }
@@ -165,27 +165,48 @@ function renderSettings() {
     : account
       ? row(`<span class="fox-av">${FOX}</span>`, `<code>${esc(short(account))}</code>`, `MetaMask${owner ? " · vault owner" : ""}${conf?.destName ? ` · ${esc(conf.destName)}` : ""}`, `<span class="spill ok">Connected</span>`)
       : row(`<span class="fox-av">${FOX}</span>`, "Connected wallet", window.ethereum ? "Not connected" : isMobileDevice() ? "Open Flowlet in the MetaMask app" : "Needs a browser wallet such as MetaMask", btn("setConnect", "Connect", "primary"));
+  const VIDEO = "https://github.com/yunnaysy/flowlet/blob/main/docs/video/flowlet-demo.mp4";
   box.innerHTML = `
     <div class="set-group"><h2 class="set-h">Wallet</h2><ul class="set-list">${walletRow}
-      ${row(IC.flows, "Networks", `${esc(conf?.destName || "Ethereum Sepolia")} · Reactive Lasna · test tokens only`, `<span class="spill">Testnet</span>`)}</ul></div>
-    <div class="set-group"><h2 class="set-h">Security &amp; Permissions</h2><ul class="set-list">
+      ${row(IC.flows, "Networks", `${esc(conf?.destName || "Ethereum Sepolia")} · Reactive Lasna · test tokens only`, btn("setNets", "View"))}
+      ${account && !local ? `<li class="set-row danger"><button type="button" class="set-btn" id="setDisconnect">${IC.logout}Disconnect wallet</button></li>` : ""}</ul></div>
+    <div class="set-group"><h2 class="set-h">Automation</h2><ul class="set-list">
       ${row(IC.pause, "Pause all rules", "Stops every rule at once. Resume any time.", go("#/flows?pause=1", "Open Flows to pause all rules"))}
-      ${row(IC.shield, "Funds &amp; permissions", "Flowlet holds your rules and an allowance you set, never your tokens.", `<span class="spill ok">Secured</span>`)}
-      ${row(IC.lock, "How your funds are protected", "Limits, reserve, revoke = stop", btn("setTrust", "Read"))}
-      ${row(IC.file, "What's visible on-chain", "Addresses, amounts and schedules are public", btn("setPrivacy", "Read"))}</ul></div>
-    <div class="set-group"><h2 class="set-h">Notifications</h2><ul class="set-list">
-      ${row(IC.bell, "In-app status", "Triggered and Executed show on Home as they happen. Push notifications aren't available yet.", `<span class="spill">In-app</span>`)}</ul></div>
-    <div class="set-group"><h2 class="set-h">Help &amp; Support</h2><ul class="set-list">
-      ${row(IC.replay, "Replay the recorded loop", "Real testnet transactions, no wallet needed", btn("setReplay", "Replay"))}
-      ${row(IC.file, "60-second walkthrough", "Written script in the README. No video yet.", `<a class="set-go" href="https://github.com/yunnaysy/flowlet#60-second-demo" target="_blank" rel="noopener" aria-label="Open the 60-second walkthrough (new tab)">${IC.ext}</a>`)}
-      ${row(IC.help, "Glossary", "Loop, Reactive Lasna, vault rules, Safety Guard", btn("setGloss", "Open"))}
-      ${row(IC.flows, "Welcome screen", "The story and the three ways in", go("#/welcome", "Open the welcome screen"))}
-      ${row(IC.help, "Source code and docs", "MIT licensed, on GitHub", `<a class="set-go" href="https://github.com/yunnaysy/flowlet" target="_blank" rel="noopener" aria-label="Open the source code on GitHub (new tab)">${IC.ext}</a>`)}</ul></div>
-    ${account && !local ? `<div class="set-group"><ul class="set-list"><li class="set-row danger"><button type="button" class="set-btn" id="setDisconnect">${IC.logout}Disconnect wallet</button></li></ul></div>` : ""}`;
+      ${row(IC.shield, "Funds &amp; permissions", "What the automation can touch: allowance, daily limit, reserve", btn("setFunds", "View"))}</ul></div>
+    <div class="set-group"><h2 class="set-h">Preferences</h2><ul class="set-list">
+      ${row(IC.bell, "Notifications", "Triggered and Executed show in the app as they happen. Push notifications are coming soon.", `<span class="spill">In-app</span>`)}
+      ${row(IC.lock, "Security &amp; privacy", "How your funds are protected, and what's public on-chain", btn("setTrust", "Read"))}</ul></div>
+    <div class="set-group"><h2 class="set-h">About</h2><ul class="set-list">
+      ${row(`<svg class="logo bubbles" viewBox="0 0 32 32" aria-hidden="true"><circle cx="12.8" cy="18.9" r="7.2"/><circle class="b2" cx="21.6" cy="10.6" r="4.6"/><circle class="b2" cx="24" cy="21.4" r="2.5"/></svg>`, "About Flowlet", "What it is, demo replay, video, source", btn("setAbout", "Open"))}
+      ${row(IC.file, "Testnet information", local ? "Local rehearsal chains" : "Sepolia 11155111 · Lasna 5318007 · contracts", btn("setTestnet", "Open"))}</ul></div>`;
+  $("setNets")?.addEventListener("click", () => $("netPill")?.click());
+  $("setFunds")?.addEventListener("click", () => $("funds")?.scrollIntoView({ block: "start", behavior: reduceMotion() ? "auto" : "smooth" }));
+  $("setAbout")?.addEventListener("click", () => {
+    sheet("About Flowlet", `<p>Flowlet runs money rules for your wallet: standing orders, auto-save and a Safety Guard. A reactive contract on Reactive Network watches Sepolia and calls your vault back when a rule should run, so no bot or server of ours is involved.</p>
+      <ul class="set-list flat">
+        ${row(IC.replay, "Replay the recorded loop", "Real testnet transactions, no wallet needed", btn("abReplay", "Replay"))}
+        ${row(IC.file, "2-minute walkthrough video", "Captioned, recorded on the live site", `<a class="set-go" href="${VIDEO}" target="_blank" rel="noopener" aria-label="Watch the walkthrough video (new tab)">${IC.ext}</a>`)}
+        ${row(IC.help, "Glossary", "Loop, Reactive Lasna, vault rules, Safety Guard", btn("abGloss", "Open"))}
+        ${row(IC.flows, "Welcome screen", "The story and the three ways in", go("#/welcome", "Open the welcome screen"))}
+        ${row(IC.help, "Source code and docs", "MIT licensed, on GitHub", `<a class="set-go" href="https://github.com/yunnaysy/flowlet" target="_blank" rel="noopener" aria-label="Open the source code on GitHub (new tab)">${IC.ext}</a>`)}
+      </ul><p class="small muted">Testnet software with automated tests and no external audit. Never use it with real funds.</p>`);
+    $("abReplay")?.addEventListener("click", () => { $("sheet")?.close(); runReplay(); });
+    $("abGloss")?.addEventListener("click", () => $("setGloss").click());
+    $("sheet")?.querySelector("a[href='#/welcome']")?.addEventListener("click", () => $("sheet")?.close());
+  });
+  $("setTestnet")?.addEventListener("click", () => {
+    sheet("Testnet information", `<p>${local ? "Two private chains on this computer, for rehearsing. Nothing here is real or public." : "Flowlet runs on two public test networks. tUSD is a free test token with no value; lREACT pays Reactive's gas on Lasna."}</p>
+      <dl class="kv">
+        <dt>Rules and money</dt><dd>${local ? "Sepolia (anvil)" : `${esc(conf?.destName || "Ethereum Sepolia")} · chain ID <code>${esc(conf?.destChainId ?? 11155111)}</code>`}</dd>
+        <dt>Reactive contract</dt><dd>${local ? "Lasna (anvil)" : "Reactive Lasna · chain ID <code>5318007</code>"}</dd>
+      </dl>
+      <h3 class="h4">Contracts</h3><div class="contracts">${$("contracts")?.innerHTML || "Loading…"}</div>
+      ${local ? "" : `<p class="small">Explorers: <a href="https://sepolia.etherscan.io" target="_blank" rel="noopener">Sepolia Etherscan</a> · <a href="https://lasna.reactscan.net" target="_blank" rel="noopener">Lasna Reactscan</a></p>`}`);
+  });
+  // Glossary button lives off-screen so the About sheet and older links can both open it.
+  if (!$("setGloss")) box.insertAdjacentHTML("beforeend", `<button type="button" id="setGloss" hidden>Glossary</button>`);
   $("setConnect")?.addEventListener("click", () => $("connectBtn").click());
   $("setTrust")?.addEventListener("click", () => $("trustBtn")?.click());
-  $("setPrivacy")?.addEventListener("click", () => $("privacyBtn")?.click());
-  $("setReplay")?.addEventListener("click", runReplay);
   $("setGloss")?.addEventListener("click", () => sheet("Glossary", `<dl class="kv gloss">${[["Loop", "One automatic run: an event on Sepolia, the reactive contract's transaction on Lasna, and the callback that runs your rule on Sepolia."], ["Reactive Lasna", "Reactive Network's testnet, where Flowlet's reactive contract watches Sepolia and sends callbacks. No server or bot of ours is involved."], ["Vault rules", "Your standing orders and auto-save, stored in the vault contract on Sepolia. Owner-only."], ["Safety Guard", "A daily cap for standing orders that pauses automation instead of overspending, plus an emergency reserve auto-save never goes below."], ["Allowance", "How many tUSD the vault may pull from your wallet. Your tokens stay in your wallet; 0 stops everything."]].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`));
   $("setDisconnect")?.addEventListener("click", async () => {
     // A web page can't log a wallet out; MetaMask supports revoking this site's account permission, and we forget it here either way.
@@ -296,7 +317,7 @@ async function replayLoop() {
   paint("exec", "Replay · Executed", `${moved(r) || esc(r.decisions.map((d) => d.label).join(", "))}. ${link(ex.dest, r.callback?.tx, "Callback via Reactive's proxy")}${esc(lat)}`, "exec"); await sleep(5000);
   replaying = false; btn.disabled = false; render();
 }
-function runReplay() { location.hash = "#/home"; setTimeout(() => { $("demoBox")?.scrollIntoView({ block: "start", behavior: reduceMotion() ? "auto" : "smooth" }); window.dispatchEvent(new CustomEvent("flowlet:runreplay")); }, 150); }
+function runReplay() { location.hash = "#/demo"; setTimeout(() => { $("demoBox")?.scrollIntoView({ block: "start", behavior: reduceMotion() ? "auto" : "smooth" }); window.dispatchEvent(new CustomEvent("flowlet:runreplay")); }, 150); }
 $("replayBtn").addEventListener("click", () => window.dispatchEvent(new CustomEvent("flowlet:runreplay")));
 void replayLoop;
 
