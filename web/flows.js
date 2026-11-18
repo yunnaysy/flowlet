@@ -98,7 +98,7 @@ function paintHome() {
   const list = automations();
   if (!list) {
     const slow = Date.now() - loadedAt > 20000;
-    m.innerHTML = ["Active flows", "Executions", "Allowance"].map((t, i) => `<div class="kcard ${["green hero-k", "violet", "sky"][i]} sk-card"><span class="kc-l">${t}</span><b class="kc-n sk">—</b></div>`).join("");
+    m.dataset.h = ""; m.innerHTML = ["Active flows", "Executions", "Allowance"].map((t, i) => `<div class="kcard ${["green hero-k", "violet", "sky"][i]} sk-card"><span class="kc-l">${t}</span><b class="kc-n sk">—</b></div>`).join("");
     paintGreet();
     body.innerHTML = slow ? `<div class="empty-box err" role="alert"><b>Couldn't read the vault yet</b><p class="small muted">The testnet RPC may be slow. Flowlet keeps retrying every few seconds.</p><button type="button" class="btn ghost small" id="hfReload">Reload</button></div>` : `<div class="skel-rows" aria-label="Loading"><i></i><i></i></div>`;
     $("hfReload")?.addEventListener("click", () => location.reload());
@@ -108,11 +108,11 @@ function paintHome() {
   const live = rows.filter((r) => r.callback && executed(r)).length;
   const rec = !rows.length && recorded ? recorded.rows.filter((r) => r.callback && (r.decisions || []).some((d) => BigInt(d.executed || 0) > 0n)).length : null;
   const kc = (tone, o, label, value, sub) => `<div class="kcard ${tone}" role="listitem"><span class="kc-l">${label}</span><b class="kc-n">${value}</b><span class="kc-s">${sub}</span><img class="kc-obj" src="3d/f-${o}.webp" alt="" aria-hidden="true" width="512" height="512" decoding="async"></div>`;
-  m.setAttribute("role", "list");
-  m.innerHTML = kc("green hero-k", "bubbles", "Active flows", active, rules.revoked ? "Access revoked · nothing can move" : rules.paused ? "All rules paused" : `of ${list.length - 1} automations`)
+  const html = kc("green hero-k", "bubbles", "Active flows", active, rules.revoked ? "Access revoked · nothing can move" : rules.paused ? "All rules paused" : `of ${list.length - 1} automations`)
     + kc("violet", "bolt", "Executions", rec != null ? rec : live, rec != null ? "recorded loops" : "completed loops")
     + kc("sky", "loop", "Allowance", esc(rules.allowance), "tUSD the vault may move")
     + kc("mint", "nodes", "Chains", "2", "Sepolia + Reactive Lasna");
+  if (m.dataset.h !== html) { m.innerHTML = html; m.dataset.h = html; }
   paintGreet();
   const shown = list.filter((a) => a.status !== "Finished").slice(0, 3);
   body.innerHTML = `<ul class="auto-mini">${shown.map((a) => `<li><a href="#/flows?id=${a.id}" class="am-row"><span class="tag ${a.tone}" aria-hidden="true">${a.icon}</span><span class="am-txt"><b>${esc(a.name)}</b><small>${esc(a.trigger)}</small></span><span class="pill ${pillCls(a.status)}">${esc(a.status)}</span><span class="am-go" aria-hidden="true">${I.chev}</span></a></li>`).join("")}</ul>`;
