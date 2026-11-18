@@ -4,101 +4,149 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Flowlet · Money moves on your rules</title>
+<meta name="description" content="Standing orders, auto-save and a Safety Guard for your wallet, run by a reactive contract on Reactive Network. Testnet only." />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https: http://127.0.0.1:18545 http://127.0.0.1:18546; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<meta name="theme-color" content="#0A0E13" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2230%22 fill=%22%237fd1ae%22/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22%230A0E13%22/%3E%3Cpath d=%22M7 12c4-4 7 4 11 0s5-2 7 0M7 20c4-4 7 4 11 0s5-2 7 0%22 fill=%22none%22 stroke=%22%235BE3B0%22 stroke-width=%222.4%22 stroke-linecap=%22round%22/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 <header class="top">
-  <div class="brand">
-    <div class="logo" aria-hidden="true"><span></span><span></span><span></span></div>
-    <div>
-      <h1>Flowlet</h1>
-      <p class="tagline">Money moves on your rules.</p>
-    </div>
-  </div>
+  <a class="brand" href="#" aria-label="Flowlet">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12c4-4 7 4 11 0s6-3 11 0M5 20c4-4 7 4 11 0s6-3 11 0" /></svg>
+    <span>Flowlet</span>
+  </a>
+  <nav class="links" aria-label="Sections">
+    <a href="#proof">Live proof</a><a href="#guard">Safety Guard</a><a href="#funds">Funds</a><a href="#rules-card">Rules</a>
+  </nav>
   <div class="top-actions">
     <span id="netPill" class="pill">Loading…</span>
-    <button id="connectBtn" class="btn ghost" hidden>Connect wallet</button>
+    <button id="connectBtn" class="btn ghost small" hidden>Connect wallet</button>
   </div>
 </header>
 
 <main>
-  <section class="hero card">
+  <section class="hero">
     <div class="hero-text">
-      <h2>Your wallet, on autopilot.</h2>
-      <p>Pay rent on schedule, save a slice of every paycheck, and stop everything the moment you revoke access.
-        A <b>reactive contract</b> on Reactive Network watches the chain and acts for you. No bots, no servers,
-        and your money never leaves your wallet until a rule fires.</p>
+      <span class="eyebrow"><span class="live-dot"></span>Reactive Network · Testnet</span>
+      <h1>Your wallet,<br /><span class="grad">on autopilot.</span></h1>
+      <p class="lead">Pay rent on schedule, save a slice of every paycheck, and stop everything the moment you revoke access.
+        A <b>reactive contract</b> watches the chain and acts for you. No bots, no servers, and your money never leaves your wallet until a rule fires.</p>
+      <div class="rail" aria-hidden="true">
+        <div class="node"><span class="ic">◎</span><b>Your wallet</b><small>events</small></div>
+        <div class="wire"><i></i><i></i><i></i></div>
+        <div class="node brain"><span class="ic">✦</span><b>Reactive brain</b><small>Lasna</small></div>
+        <div class="wire"><i></i><i></i><i></i></div>
+        <div class="node"><span class="ic">⇢</span><b>Vault rules</b><small>callback</small></div>
+      </div>
     </div>
     <div class="demo-box">
-      <button id="runDemo" class="btn big">▶ RUN DEMO</button>
+      <div class="demo-head"><span class="eyebrow">One-click rehearsal</span><span id="demoCount" class="mono muted">10 steps</span></div>
+      <button id="runDemo" class="btn big"><span class="play" aria-hidden="true">▶</span> RUN DEMO</button>
       <ol id="demoSteps" class="steps"></ol>
     </div>
   </section>
 
-  <section class="stats" id="stats"></section>
+  <section class="stats" id="stats" aria-live="polite"></section>
 
-  <section class="card">
+  <section class="card" id="proof">
     <div class="section-head">
       <div>
+        <span class="eyebrow">Verifiable, end to end</span>
         <h2>Live Reactive Proof</h2>
         <p class="muted">Every row is rebuilt from on-chain logs: origin event → reactive transaction on Lasna → callback
           through Reactive's callback proxy → rule evaluation → token transfer. No button in this page moves funds.</p>
       </div>
       <span id="traceStatus" class="pill soft">waiting</span>
     </div>
-    <div id="timeline" class="timeline"><p class="empty">No reactive activity yet. Press <b>RUN DEMO</b> or create a rule.</p></div>
+    <div id="timeline" class="timeline"><p class="empty"><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>No reactive activity yet. Press <b>RUN DEMO</b> or create a rule.</p></div>
   </section>
 
   <div class="grid2">
     <section class="card">
-      <h2>Reactive brain <small class="muted">(Lasna)</small></h2>
+      <span class="eyebrow">Subscriptions</span>
+      <h2>Reactive brain <small class="muted">· Lasna</small></h2>
       <ul id="subs" class="subs"></ul>
     </section>
-    <section class="card">
+    <section class="card" id="guard">
+      <span class="eyebrow">Circuit breaker</span>
       <h2>Safety Guard</h2>
       <div id="guardBox"></div>
     </section>
   </div>
 
-  <section class="card">
+  <section class="card funds" id="funds">
+    <div class="section-head">
+      <div><span class="eyebrow">Security &amp; funds</span><h2>Funds &amp; permissions</h2><p class="muted">Flowlet doesn't hold your money. It holds your rules. Know exactly what the automation can touch.</p></div>
+      <button type="button" class="btn ghost small" id="trustBtn">How your funds are protected →</button>
+    </div>
+    <div class="fund-grid" id="fundGrid"></div>
+    <div class="grid2 tight">
+      <ul class="perms">
+        <li class="yes"><span class="pm">✓</span>Pays only the payees and savings address you set</li>
+        <li class="yes"><span class="pm">✓</span>Moves money only on a callback from your reactive contract via Reactive's proxy</li>
+        <li class="yes"><span class="pm">✓</span>Standing orders stop at the daily limit (the guard trips instead of overspending)</li>
+        <li class="yes"><span class="pm">✓</span>Auto-save never takes your wallet below the emergency reserve</li>
+        <li class="no"><span class="pm">✕</span>Cannot add rules, change payees or raise limits (owner only)</li>
+        <li class="no"><span class="pm">✕</span>Never holds your tokens or your keys</li>
+      </ul>
+      <div class="recovery">
+        <b>Recovery path</b>
+        <ol><li><b>Pause all</b>: every rule stops; the reactive contract drops its CRON and deposit subscriptions.</li>
+          <li><b>Revoke access</b>: allowance to 0. Nothing can move, and the reactive contract pauses itself.</li>
+          <li>Your tokens never left your wallet, so there is nothing to withdraw. Only the vault's small native gas balance is withdrawable, by you.</li></ol>
+        <p class="small muted">On-chain data is public: your address, rule amounts, schedules, payees and every transfer. Flowlet stores no names, emails or notes, only addresses and numbers. <button type="button" class="linkish" id="privacyBtn">What's visible on-chain</button></p>
+      </div>
+    </div>
+  </section>
+
+  <dialog id="trust" class="modal" aria-labelledby="trustTitle">
+    <div class="section-head"><div><span class="eyebrow">Security &amp; funds</span><h2 id="trustTitle">How your funds are protected</h2></div><button type="button" class="btn ghost small" id="trustClose">Close</button></div>
+    <div id="trustBody"></div>
+  </dialog>
+
+  <section class="card" id="rules-card">
+    <span class="eyebrow">Standing orders &amp; auto-save</span>
     <h2>Your rules</h2>
-    <div id="rules"></div>
+    <div id="rules" class="table-wrap"></div>
     <details class="manage">
       <summary>Manage rules</summary>
       <div class="forms">
         <form id="fOrder" class="mini">
-          <h3>🏠 Standing order</h3>
-          <label>Pay to<input name="payee" value="0x1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d" /></label>
-          <label>Amount (tUSD)<input name="amount" value="25" /></label>
-          <label>Every (seconds)<input name="interval" value="60" /></label>
-          <label>Times (0 = forever)<input name="runs" value="3" /></label>
+          <h3><span class="tag peach">⌂</span> Standing order</h3>
+          <label>Pay to<input name="payee" value="0x1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d1a4d" class="mono" maxlength="42" autocomplete="off" /></label>
+          <label>Amount (tUSD)<input name="amount" value="25" inputmode="decimal" /></label>
+          <label>Every (seconds)<input name="interval" value="60" inputmode="numeric" /></label>
+          <label>Times (0 = forever)<input name="runs" value="3" inputmode="numeric" /></label>
           <button class="btn">Create</button>
         </form>
         <form id="fSave" class="mini">
-          <h3>🌱 Auto-save</h3>
-          <label>Savings address<input name="savings" value="0x5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e" /></label>
-          <label>Deposits of at least (tUSD)<input name="min" value="100" /></label>
-          <label>Save (%)<input name="pct" value="20" /></label>
-          <button class="btn">Turn on</button> <button type="button" class="btn ghost" id="saveOff">Turn off</button>
+          <h3><span class="tag mint">❀</span> Auto-save</h3>
+          <label>Savings address<input name="savings" value="0x5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e5a7e" class="mono" maxlength="42" autocomplete="off" /></label>
+          <label>Deposits of at least (tUSD)<input name="min" value="100" inputmode="decimal" /></label>
+          <label>Save (%)<input name="pct" value="20" inputmode="decimal" /></label>
+          <div class="row"><button class="btn">Turn on</button><button type="button" class="btn ghost" id="saveOff">Turn off</button></div>
         </form>
         <form id="fGuard" class="mini">
-          <h3>🛡️ Safety Guard</h3>
-          <label>Daily limit for payments (tUSD, 0 = none)<input name="limit" value="500" /></label>
-          <label>Emergency reserve (tUSD)<input name="reserve" value="0" /></label>
+          <h3><span class="tag rose">◈</span> Safety Guard</h3>
+          <label>Daily limit for payments (tUSD, 0 = none)<input name="limit" value="500" inputmode="decimal" /></label>
+          <label>Emergency reserve (tUSD)<input name="reserve" value="0" inputmode="decimal" /></label>
           <button class="btn">Save</button>
           <div class="row">
             <button type="button" class="btn ghost" id="pauseBtn">Pause all</button>
             <button type="button" class="btn ghost" id="resumeBtn">Resume</button>
-            <button type="button" class="btn ghost" id="revokeBtn">Revoke access</button>
+            <button type="button" class="btn danger" id="revokeBtn">Revoke access</button>
             <button type="button" class="btn ghost" id="approveBtn">Approve 2,000</button>
           </div>
         </form>
         <form id="fMint" class="mini">
-          <h3>💸 Test money</h3>
-          <label>Amount (tUSD)<input name="amount" value="1000" /></label>
+          <h3><span class="tag sky">$</span> Test money</h3>
+          <label>Amount (tUSD)<input name="amount" value="1000" inputmode="decimal" /></label>
           <button class="btn">Receive a deposit</button>
         </form>
       </div>
@@ -106,8 +154,9 @@
   </section>
 
   <section class="card">
+    <span class="eyebrow">Console</span>
     <h2>Activity log</h2>
-    <div id="log" class="log"></div>
+    <div id="log" class="log" aria-live="polite"></div>
   </section>
 
   <footer id="footer" class="muted"></footer>

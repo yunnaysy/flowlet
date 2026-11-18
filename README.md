@@ -9,7 +9,14 @@ you. There are no bots, no keepers and no servers, and your money never leaves y
 Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive-omni-buildathon), track
 **Set It and Forget It**.
 
+![Flowlet: your wallet, on autopilot](docs/img/hero.png)
+
 ![Live Reactive Proof timeline](docs/img/timeline.png)
+
+| ![Funds & permissions](docs/img/funds.png) | ![How your funds are protected](docs/img/funds-modal.png) |
+|---|---|
+
+Design system: [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) · Security, custody & privacy: [docs/SECURITY.md](docs/SECURITY.md)
 
 ## What it does
 

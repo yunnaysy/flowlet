@@ -461,4 +461,57 @@ contract FlowletTest is Test {
         if (saved > 0) assertGe(usd.balanceOf(user), reserve);
         assertEq(before - usd.balanceOf(user), saved);
     }
+
+    function _sweepPayload(uint256 incoming, bytes32 txh, uint256 idx) internal pure returns (bytes memory) {
+        return abi.encodeWithSignature(
+            "sweep(address,uint256,uint256,bytes32,uint256)", address(0), 1, incoming, txh, idx
+        );
+    }
+
+    /// Only the paired FlowletReactive contract (via the callback proxy) may drive the vault.
+    function testFuzz_foreignCallbackSenderRejected(address evil, uint96 incoming) public {
+        vm.assume(evil != address(rc));
+        vm.prank(user);
+        vault.configureSweep(savings, 1, 10_000, true);
+        vm.expectRevert();
+        proxy.deliver(address(vault), _sweepPayload(bound(incoming, 1, 1_000e6), "evil", 0), evil);
+        vm.expectRevert();
+        proxy.deliver(
+            address(vault), abi.encodeWithSignature("tripGuard(address,uint256,uint8)", address(0), 1, 11), evil
+        );
+        assertEq(usd.balanceOf(savings), 0);
+        (,,,, bool paused,) = vault.guard();
+        assertFalse(paused);
+    }
+
+    /// Nobody but the owner can change rules, pause/resume or move native funds.
+    function testFuzz_nonOwnerCannotConfigure(address caller) public {
+        vm.assume(caller != user);
+        vm.startPrank(caller);
+        vm.expectRevert(FlowletVault.NotOwner.selector);
+        vault.createOrder(caller, 1, 60, 0, 0);
+        vm.expectRevert(FlowletVault.NotOwner.selector);
+        vault.configureSweep(caller, 1, 10_000, true);
+        vm.expectRevert(FlowletVault.NotOwner.selector);
+        vault.configureGuard(type(uint256).max, 0);
+        vm.expectRevert(FlowletVault.NotOwner.selector);
+        vault.pause();
+        vm.expectRevert(FlowletVault.NotOwner.selector);
+        vault.resume();
+        vm.expectRevert(FlowletVault.NotOwner.selector);
+        vault.withdrawNative(0);
+        vm.stopPrank();
+    }
+
+    /// The same origin log can never be auto-saved twice (replay protection).
+    function testFuzz_sweepSameLogOnlyOnce(bytes32 txh, uint256 idx, uint96 incoming) public {
+        incoming = uint96(bound(incoming, 1, 1_000e6));
+        vm.prank(user);
+        vault.configureSweep(savings, 1, 5_000, true);
+        proxy.deliver(address(vault), _sweepPayload(incoming, txh, idx), address(rc));
+        uint256 once = usd.balanceOf(savings);
+        proxy.deliver(address(vault), _sweepPayload(incoming, txh, idx), address(rc));
+        assertEq(usd.balanceOf(savings), once);
+        assertTrue(vault.processedLog(keccak256(abi.encode(txh, idx))));
+    }
 }
