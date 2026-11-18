@@ -7,25 +7,39 @@ const reduceMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)
 const sleep = (ms) => new Promise((r) => setTimeout(r, reduceMotion() ? 0 : ms));
 const desktop = window.matchMedia("(min-width: 1024px)");
 const svg = (d) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+// Lucide icons (ISC), inlined. Brand marks (MetaMask fox) are the official files, never redrawn.
 const IC = {
-  wallet: svg('<path d="M5 7.5V7a2 2 0 0 1 2-2h10"/><rect x="4" y="7.5" width="16" height="11.5" rx="2.5"/><path d="M15.5 13.25h1.5"/>'),
-  close: svg('<path d="M7 7l10 10M17 7L7 17"/>'),
-  phone: svg('<rect x="7" y="3.5" width="10" height="17" rx="2.5"/><path d="M11 17.5h2"/>'),
-  replay: svg('<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5V9h4.5"/>'),
-  ext: svg('<path d="M14 5h5v5M19 5l-8 8"/><path d="M17 13.5V18a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h4.5"/>'),
+  wallet: svg('<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/> <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'),
+  close: svg('<path d="M18 6 6 18"/> <path d="m6 6 12 12"/>'),
+  phone: svg('<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/> <path d="M12 18h.01"/>'),
+  replay: svg('<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/> <path d="M3 3v5h5"/> <path d="M12 7v5l4 2"/>'),
+  ext: svg('<path d="M15 3h6v6"/> <path d="M10 14 21 3"/> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>'),
+  pause: svg('<circle cx="12" cy="12" r="10"/> <line x1="10" x2="10" y1="15" y2="9"/> <line x1="14" x2="14" y1="15" y2="9"/>'),
+  play: svg('<polygon points="6 3 20 12 6 21 6 3"/>'),
+  lock: svg('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/> <path d="M7 11V7a5 5 0 0 1 10 0v4"/>'),
+  chev: svg('<path d="m9 18 6-6-6-6"/>'),
+  shield: svg('<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/> <path d="m9 12 2 2 4-4"/>'),
+  bell: svg('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/> <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'),
+  help: svg('<circle cx="12" cy="12" r="10"/> <path d="m4.93 4.93 4.24 4.24"/> <path d="m14.83 9.17 4.24-4.24"/> <path d="m14.83 14.83 4.24 4.24"/> <path d="m9.17 14.83-4.24 4.24"/> <circle cx="12" cy="12" r="4"/>'),
+  logout: svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/> <polyline points="16 17 21 12 16 7"/> <line x1="21" x2="9" y1="12" y2="12"/>'),
+  file: svg('<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/> <path d="M14 2v4a2 2 0 0 0 2 2h4"/> <path d="M10 9H8"/> <path d="M16 13H8"/> <path d="M16 17H8"/>'),
+  flows: svg('<rect width="8" height="8" x="3" y="3" rx="2"/> <path d="M7 11v4a2 2 0 0 0 2 2h4"/> <rect width="8" height="8" x="13" y="13" rx="2"/>'),
 };
+const FOX = `<img class="fox" src="brand/metamask-fox.svg" alt="" width="20" height="20" />`;
 const isStandalone = () => window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone === true;
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 const isMobileDevice = () => /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent) || (window.matchMedia?.("(pointer: coarse)").matches && innerWidth <= 1024);
 
 // ------------------------------------------------------------------ tabs
-const TABS = ["status", "timeline", "proof", "settings"];
-const TITLE = { status: "Status", timeline: "Timeline", proof: "Proof", settings: "Settings" };
-const LEGACY = { proof: ["timeline", "proof"], guard: ["proof", "guard"], funds: ["settings", "funds"], "rules-card": ["settings", "rules-card"] };
+const TABS = ["home", "flows", "activity", "settings"];
+const TITLE = { home: "Home", flows: "Flows", activity: "Activity", settings: "Settings" };
+// Old links keep working: #/status, #/timeline, #/proof and the pre-tab anchors land on the tab that now holds them.
+const OLD_TABS = { status: "home", timeline: "activity", proof: "activity" };
+const LEGACY = { proof: ["activity", "proof"], guard: ["flows", "guard"], funds: ["settings", "funds"], "rules-card": ["flows", "rules-card"] };
 let cur = null;
 function applyTab() {
   const [raw, query = ""] = location.hash.replace(/^#\/?/, "").split("?");
-  let tab = TABS.includes(raw) ? raw : "status", scrollTo = null;
+  let tab = TABS.includes(raw) ? raw : OLD_TABS[raw] || "home", scrollTo = null;
   if (LEGACY[raw] && !location.hash.startsWith("#/")) [tab, scrollTo] = LEGACY[raw];
   const main = $("main");
   const changed = tab !== cur, first = cur == null; cur = tab;
@@ -36,7 +50,7 @@ function applyTab() {
   }
   for (const a of document.querySelectorAll("#tabs a")) { const on = a.dataset.tab === tab; a.classList.toggle("active", on); on ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"); }
   $("appbarTitle").textContent = TITLE[tab];
-  document.title = tab === "status" ? "Flowlet · Money moves on your rules" : `${TITLE[tab]} · Flowlet`;
+  document.title = tab === "home" ? "Flowlet · Money moves on your rules" : `${TITLE[tab]} · Flowlet`;
   // Tabs are peers (Appllama / Emil): switching is instant, no slide. Each tab opens at its top.
   if (changed && !first) window.scrollTo({ top: 0, behavior: "auto" });
   // Sidebar "Pause all rules" lands here: open Manage rules and focus the real Pause button. Pausing still takes a tap and a wallet confirmation.
@@ -116,11 +130,11 @@ function noWallet(reason) {
     <p class="muted">${demo ? "The live demo signs testnet transactions from the vault owner's wallet on Ethereum Sepolia. " : ""}${mobile
       ? "Phone browsers can't talk to a wallet directly. Open Flowlet inside the MetaMask app's browser and connect there. Your keys never leave MetaMask."
       : "Flowlet connects to a browser wallet such as the MetaMask extension. Install it, reload this page, then connect."}</p>
-    ${mobile ? `<a class="btn primary wide" href="${esc(metamaskLink())}" rel="noopener">${IC.wallet}Open in MetaMask</a>` : `<a class="btn primary wide" href="https://metamask.io/download/" target="_blank" rel="noopener">${IC.wallet}Get MetaMask</a>`}
+    ${mobile ? `<a class="btn mm wide" href="${esc(metamaskLink())}" rel="noopener">${FOX}Open in MetaMask</a>` : `<a class="btn mm wide" href="https://metamask.io/download/" target="_blank" rel="noopener">${FOX}Get MetaMask</a>`}
     <hr class="sep" />
     <p class="small muted">No wallet needed for these: every row is rebuilt from real on-chain logs.</p>
-    <div class="sheet-actions"><button type="button" class="btn ghost wide" data-close data-replay>${IC.replay}Replay the last real loop</button><a class="btn ghost wide" href="#/timeline" data-close>See the live timeline</a></div>`)
-    .querySelector("[data-replay]").addEventListener("click", () => { location.hash = "#/status"; setTimeout(replayLoop, 250); });
+    <div class="sheet-actions"><button type="button" class="btn ghost wide" data-close data-replay>${IC.replay}Replay the last real loop</button><a class="btn ghost wide" href="#/activity" data-close>See the live timeline</a></div>`)
+    .querySelector("[data-replay]").addEventListener("click", () => { location.hash = "#/home"; setTimeout(replayLoop, 250); });
 }
 $("sideWallet").addEventListener("click", () => $("connectBtn").click());
 window.addEventListener("flowlet:nowallet", (e) => noWallet(e.detail?.reason));
@@ -136,11 +150,49 @@ async function checkNetwork() {
     $("switchNet").onclick = () => ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x" + Number(conf.destChainId).toString(16) }] }).then(checkNetwork).catch(() => {});
   }
 }
+/** Settings, iPhone style: grouped rounded lists. Every row opens something real; nothing here is decorative. */
+function renderSettings() {
+  const box = $("settingsList"); if (!box) return;
+  const row = (ic, title, sub, end, attrs = "") => `<li class="set-row"${attrs}><span class="set-ic" aria-hidden="true">${ic}</span><span class="set-txt"><b>${title}</b>${sub ? `<small>${sub}</small>` : ""}</span>${end || ""}</li>`;
+  const go = (href, label) => `<a class="set-go" href="${href}" aria-label="${esc(label)}">${IC.chev}</a>`;
+  const btn = (id, label, cls = "ghost") => `<button type="button" class="btn small ${cls}" id="${id}">${label}</button>`;
+  const owner = account && conf?.owner && account.toLowerCase() === conf.owner.toLowerCase();
+  const local = conf?.isLocal;
+  const walletRow = local
+    ? row(IC.wallet, "Local rehearsal", "Demo keys on your own machine", `<span class="spill ok">Connected</span>`)
+    : account
+      ? row(`<span class="fox-av">${FOX}</span>`, `<code>${esc(short(account))}</code>`, `MetaMask${owner ? " · vault owner" : ""}${conf?.destName ? ` · ${esc(conf.destName)}` : ""}`, `<span class="spill ok">Connected</span>`)
+      : row(`<span class="fox-av">${FOX}</span>`, "Connected wallet", window.ethereum ? "Not connected" : isMobileDevice() ? "Open Flowlet in the MetaMask app" : "Needs a browser wallet such as MetaMask", btn("setConnect", "Connect", "primary"));
+  box.innerHTML = `
+    <div class="set-group"><h2 class="set-h">Wallet</h2><ul class="set-list">${walletRow}
+      ${row(IC.flows, "Networks", `${esc(conf?.destName || "Ethereum Sepolia")} · Reactive Lasna · test tokens only`, `<span class="spill">Testnet</span>`)}</ul></div>
+    <div class="set-group"><h2 class="set-h">Security &amp; Permissions</h2><ul class="set-list">
+      ${row(IC.pause, "Pause all rules", "Stops every rule at once. Resume any time.", go("#/flows?pause=1", "Open Flows to pause all rules"))}
+      ${row(IC.shield, "Funds &amp; permissions", "Flowlet holds your rules and an allowance you set, never your tokens.", `<span class="spill ok">Secured</span>`)}
+      ${row(IC.lock, "How your funds are protected", "Limits, reserve, revoke = stop", btn("setTrust", "Read"))}
+      ${row(IC.file, "What's visible on-chain", "Addresses, amounts and schedules are public", btn("setPrivacy", "Read"))}</ul></div>
+    <div class="set-group"><h2 class="set-h">Notifications</h2><ul class="set-list">
+      ${row(IC.bell, "In-app status", "Triggered and Executed show on Home as they happen. Push notifications aren't available yet.", `<span class="spill">In-app</span>`)}</ul></div>
+    <div class="set-group"><h2 class="set-h">Help &amp; Support</h2><ul class="set-list">
+      ${row(IC.replay, "Replay the last real loop", "Real transactions, no wallet needed", btn("setReplay", "Replay"))}
+      ${row(IC.help, "Source code and docs", "MIT licensed, on GitHub", `<a class="set-go" href="https://github.com/yunnaysy/flowlet" target="_blank" rel="noopener" aria-label="Open the source code on GitHub (new tab)">${IC.ext}</a>`)}</ul></div>
+    ${account && !local ? `<div class="set-group"><ul class="set-list"><li class="set-row danger"><button type="button" class="set-btn" id="setDisconnect">${IC.logout}Disconnect wallet</button></li></ul></div>` : ""}`;
+  $("setConnect")?.addEventListener("click", () => $("connectBtn").click());
+  $("setTrust")?.addEventListener("click", () => $("trustBtn")?.click());
+  $("setPrivacy")?.addEventListener("click", () => $("privacyBtn")?.click());
+  $("setReplay")?.addEventListener("click", () => { location.hash = "#/home"; setTimeout(replayLoop, 250); });
+  $("setDisconnect")?.addEventListener("click", async () => {
+    // A web page can't log a wallet out; MetaMask supports revoking this site's account permission, and we forget it here either way.
+    await window.ethereum?.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }] }).catch(() => {});
+    account = null; setPill(); checkNetwork(); const sr = $("srStatus"); if (sr) sr.textContent = "Wallet disconnected";
+  });
+}
 function setPill() {
   const b = $("connectBtn");
   b.innerHTML = account ? `${IC.wallet}<code>${esc(short(account))}</code>` : `${IC.wallet}<span>Connect</span>`;
   $("swName").textContent = account ? short(account) : "Not connected"; $("swName").className = account ? "mono" : "";
   $("swNet").textContent = account ? (conf && account.toLowerCase() === conf.owner?.toLowerCase() ? "Vault owner" : "Connected") + (conf?.destName ? ` · ${conf.destName}` : "") : "Connect a wallet";
+  renderSettings();
   b.setAttribute("aria-label", account ? `Wallet ${short(account)}${conf && account.toLowerCase() === conf.owner?.toLowerCase() ? ", vault owner" : ""}` : "Connect wallet");
 }
 $("connectBtn").addEventListener("click", async () => {
@@ -190,7 +242,20 @@ function render() {
   }
   paint("", "No automation running", demoRunning ? "Setting up rules… the status turns live as soon as the reactive contract subscribes." : "Run the demo to create a standing order and auto-save, or replay the last real loop.", "idle");
 }
-window.addEventListener("flowlet:state", (e) => { st = e.detail; render(); });
+window.addEventListener("flowlet:state", (e) => { st = e.detail; render(); paintPause(); });
+/** Pause sits on the Home status card (and in Settings and the sidebar). It drives the same vault call as Flows → Pause all. */
+function paintPause() {
+  const b = $("asPause"); if (!b) return;
+  const mode = st?.revoked ? "revoked" : st?.paused ? "paused" : "live";
+  b.dataset.mode = mode;
+  b.innerHTML = mode === "live" ? `${IC.pause}Pause all rules` : mode === "paused" ? `${IC.play}Resume rules` : `${IC.lock}Review access`;
+}
+$("asPause")?.addEventListener("click", () => {
+  const mode = $("asPause").dataset.mode || "live";
+  if (mode === "revoked") { location.hash = "#/settings"; setTimeout(() => $("funds")?.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" }), 60); return; }
+  if (conf && !conf.isLocal && !window.ethereum) return noWallet("connect");
+  $(mode === "paused" ? "resumeBtn" : "pauseBtn")?.click();
+});
 window.addEventListener("flowlet:demo", (e) => { demoRunning = !!e.detail?.running; render(); });
 window.addEventListener("flowlet:trace", (e) => {
   rows = e.detail.rows || [];

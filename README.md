@@ -13,16 +13,16 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 
 ![Flowlet: your wallet, on autopilot](docs/img/hero.png)
 
-![Live Reactive Proof timeline](docs/img/timeline.png)
+![Activity: live Reactive proof timeline](docs/img/timeline.png)
 
-| ![Funds & permissions](docs/img/funds.png) | ![How your funds are protected](docs/img/funds-modal.png) |
+| ![Settings: funds & permissions](docs/img/funds.png) | ![How your funds are protected](docs/img/funds-modal.png) |
 |---|---|
 
 Design system: [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) · Security, custody & privacy: [docs/SECURITY.md](docs/SECURITY.md)
 
 ## Installable on phones (PWA)
 
-Flowlet looks and feels like a native app on a phone, without an APK. Open https://flowlet-kappa.vercel.app on your phone and **Add to Home Screen** (iOS: Share → Add to Home Screen; Android: the install prompt or ⋮ → Install app). It opens full screen with a bottom tab bar (Status · Timeline · Proof · Settings) and a live **automation status card**: "Your automation is live · Waiting for trigger…", then Triggered and Executed as real reactive loops land. Desktop gets a sidebar (collapsible to an icon rail) and a two-column Status dashboard; tablet gets an icon rail.
+Flowlet looks and feels like a native app on a phone, without an APK. Open https://flowlet-kappa.vercel.app on your phone and **Add to Home Screen** (iOS: Share → Add to Home Screen; Android: the install prompt or ⋮ → Install app). It opens full screen with a bottom tab bar (Home · Flows · Activity · Settings) and a live **automation status card**: "Your automation is live · Waiting for trigger…", then Triggered and Executed as real reactive loops land. Desktop gets a sidebar (collapsible to an icon rail) and a two-column Home dashboard; tablet gets an icon rail.
 
 - **Wallet on a phone:** Connect offers **Open in MetaMask**. **Replay the last real loop** needs no wallet and links every real transaction.
 - **Offline:** the shell loads offline; automation state is never cached.
@@ -30,11 +30,11 @@ Flowlet looks and feels like a native app on a phone, without an APK. Open https
 
 | Phone | Phone | Phone | Phone |
 |---|---|---|---|
-| ![Live](docs/img/mobile-status-live.png) | ![Triggered](docs/img/mobile-status-triggered.png) | ![Executed](docs/img/mobile-status-executed.png) | ![Timeline](docs/img/mobile-timeline.png) |
+| ![Live](docs/img/mobile-status-live.png) | ![Triggered](docs/img/mobile-status-triggered.png) | ![Executed](docs/img/mobile-status-executed.png) | ![Settings](docs/img/mobile-settings.png) |
 
 | Desktop | Tablet |
 |---|---|
-| ![Desktop status](docs/img/desktop-status.png) | ![Tablet](docs/img/tablet-status.png) |
+| ![Desktop home](docs/img/desktop-home.png) | ![Tablet](docs/img/tablet-home.png) |
 
 ## What it does
 

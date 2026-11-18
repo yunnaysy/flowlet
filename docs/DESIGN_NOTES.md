@@ -1,24 +1,24 @@
 # Flowlet design notes
 
-**Direction: "Night current."** Flowlet is automation you can watch working. The UI is calm and dark, with soft aurora light behind the hero. The brand is a current: a wave mark, a flow rail (Your wallet → Reactive brain → Vault rules) with dots travelling along it, and a proof timeline where every row lights up as a reactive loop completes on-chain. It keeps Flowlet's own identity, distinct from Kindly's light "Quiet trust" look. It shares Kindly's polish rules: one easing curve, calm defaults, AA contrast and reduced-motion support.
+**Direction: "Clear current"** (light, since Nov 2026). Flowlet is automation you can watch working. It now reads like a modern iOS fintech app, not a neon Web3 dashboard: a soft off-white canvas, pure white floating cards, near-black text and one mint/teal accent. The brand is still a current: a wave mark and a flow rail (Your wallet → Reactive brain → Vault rules). The first version was dark ("Night current"); see the light-direction section below for why it moved.
 
 ## Palette
 
 | Token | Hex | Use |
 |---|---|---|
-| bg | `#0A0E13` | page |
-| surface | `#111821` | cards |
-| surface-2 | `#16202B` | nested panels, trace legs (opaque so the connector line never shows through) |
-| text | `#E8EEF2` | primary text |
-| muted | `#A3AFBA` | secondary text (AA on every surface) |
-| dim | `#8D9AA7` | captions, step numbers. Raised from `#6B7885` after axe-core flagged it |
-| mint | `#5BE3B0` | primary action (RUN DEMO), success, auto-save |
-| lilac | `#A99BFF` | the reactive brain (Lasna), mandate |
-| sky | `#7CC4FF` | wallet, origin events |
-| peach | `#FFB38A` | standing orders (rent), local-network pill |
-| rose | `#FF8FA3` | guard tripped, revoked, danger |
+| bg | `#F7F7F8` | page |
+| surface | `#FFFFFF` | cards, settings groups |
+| surface-2 | `#F2F4F6` | nested panels, trace legs (opaque so the connector line never shows through) |
+| text | `#0F1720` | primary text |
+| muted | `#55606B` | secondary text (AA on every surface) |
+| dim | `#58636E` | captions, step numbers. Darkened from `#616C77` after axe-core flagged it at 4.48:1 |
+| mint | `#066A4F` | the single accent: primary action (Run demo), success, auto-save. Darkened from `#087A5B` so 12px badges on tinted panels pass AA |
+| lilac | `#5644C9` | the reactive brain (Lasna), mandate |
+| sky | `#1A62A0` | wallet, origin events |
+| peach | `#9A4E17` | standing orders (rent), local-network pill |
+| rose | `#B02A47` | guard tripped, revoked, Pause |
 
-Nav links use `#B6C2CC`, the eyebrow uses `#B6C2CC` and status pills use 12 to 16% tints of their accent. The hero accent line is solid mint (no gradient text).
+Status pills use 9 to 12% tints of their accent with the solid accent as text. Radius is 24px for cards and 16px for controls; shadows are two soft layers (`0 1px 2px` + `0 10px 30px` at 4 to 6% ink). The hero accent line is solid mint (no gradient text). The aurora glow from the dark version is switched off.
 
 ## Type (Fontshare, self-hosted)
 
@@ -88,7 +88,7 @@ Jakub Krehel's make-interfaces-feel-better was a secondary reference for tabular
 | "RUN DEMO" / "Approve 2000" | "Run demo" / "Allow 2,000 tUSD", plus a note that it uses throwaway test money |
 | A hidden Connect button still showed on local (`.btn` beat `[hidden]`) | `[hidden] { display: none !important }`, and button labels no longer wrap |
 
-**Considered and kept:** the dark "Night current" palette and mint accent (Flowlet's own identity, distinct from Kindly) and the numbered demo steps (a real sequence, not decoration). The proof-card leg stagger stays because it is the one-time wow moment, and it is skipped under reduced motion.
+**Considered and kept:** the mint accent (Flowlet's own identity, distinct from Kindly; the dark palette was later replaced, see the light direction below) and the numbered demo steps (a real sequence, not decoration). The proof-card leg stagger stays because it is the one-time wow moment, and it is skipped under reduced motion.
 
 Verified with axe-core (0 violations), a headless Run demo (all 10 steps), `forge test` (24/24) and fresh screenshots in `docs/img/`.
 
@@ -96,11 +96,11 @@ Verified with axe-core (0 violations), a headless Run demo (all 10 steps), `forg
 
 Flowlet is a PWA, not an APK: it installs to the home screen and opens full screen.
 
-- **Tabs:** Status · Timeline · Proof · Settings. Bottom tab bar on phones (≤640px), an icon rail on tablet, a 240px sidebar on desktop. Tabs are peers: switching is instant (no slide), each tab opens at its top, and re-tapping the active tab scrolls back up.
-- **Automation status card** (top of Status): "Your automation is live / Waiting for trigger…", the track Monitoring → Triggered → Executed, and the "Monitoring · Reactive Lasna" chip. Every state comes from the vault, the reactive contract or the on-chain trace: Triggered is a real pending loop (the reactive tx landed on Lasna, the callback hasn't), Executed is a freshly completed loop and stays for 9s. Paused and revoked states say so. **Replay the last real loop** walks the newest completed loop with its real transaction links, no wallet needed.
+- **Tabs:** Home · Flows · Activity · Settings (was Status · Timeline · Proof · Settings; old links still land on the right tab). Bottom tab bar on phones (≤640px), an icon rail on tablet, a 240px sidebar on desktop. Tabs are peers: switching is instant (no slide), each tab opens at its top, and re-tapping the active tab scrolls back up.
+- **Automation status card** (top of Home): "Your automation is live / Waiting for trigger…", the track Monitoring → Triggered → Executed, and the "Monitoring · Reactive Lasna" chip. Every state comes from the vault, the reactive contract or the on-chain trace: Triggered is a real pending loop (the reactive tx landed on Lasna, the callback hasn't), Executed is a freshly completed loop and stays for 9s. Paused and revoked states say so. **Replay the last real loop** walks the newest completed loop with its real transaction links, no wallet needed.
 - **Phone details:** safe areas, `interactive-widget=resizes-content`, a sticky Run demo above the tab bar, dialogs as bottom sheets with a grabber and drag-to-dismiss, the rules table as stacked rows, icon-only chain chips, 16px inputs, no long-press callout on chrome, tap highlight off, overscroll contained.
 - **Wallet on phones:** without an injected provider, Connect or Run demo opens a sheet with **Open in MetaMask** (`https://link.metamask.io/dapp/<host>/…`) plus Replay and the live timeline. Wrong network shows a banner with Switch network; accountsChanged to empty disconnects.
-- **PWA:** manifest (standalone, `#0A0E13`), icons 192/512/maskable/apple-touch, `sw.js` v2 network-first for the shell, cache-first for the self-hosted fonts. It never caches `deployments/*.json`, RPC, explorer or wallet traffic. Offline shows "You're offline. Wallet and automation state may be outdated…". An install hint uses `beforeinstallprompt` (Android) or Share → Add to Home Screen (iOS).
+- **PWA:** manifest (standalone, `#F7F7F8`), icons 192/512/maskable/apple-touch, `sw.js` v2 network-first for the shell, cache-first for the self-hosted fonts. It never caches `deployments/*.json`, RPC, explorer or wallet traffic. Offline shows "You're offline. Wallet and automation state may be outdated…". An install hint uses `beforeinstallprompt` (Android) or Share → Add to Home Screen (iOS).
 - **Desktop (≥1024px):** sidebar + top bar with chains and wallet. Status at ≥1280px is two columns: hero, live status and timeline on the left, stats and the reactive brain / Safety Guard in a 400px column on the right. The tablet layout is the icon rail with one column.
 
 ### Sidebar patterns from navbar.gallery (side-bar type)
@@ -119,7 +119,7 @@ Studied for patterns only (Aveon, Bud, Ayush Wanjari, Significa, Three Circles):
 - **Appllama (main source):** tab bar of peers, re-tap to top, the page title in the app bar, sheets with grabbers, press feedback by role (tab items dim, buttons scale 0.97).
 - **Expo skills (transferable rules):** 44px targets, 16px inputs, safe areas, no long-press callout, haptics as punctuation (one tick when a real loop executes, Android only, never the only signal), and avoiding native slop (floating pill tab bar, X-only sheets, a grand entrance).
 - **Emil Kowalski:** ease-out 150 to 250ms, exits faster than entrances, no animation on tab switches, reduced-motion fallbacks. The old tab slide was removed in this pass.
-- **Honest gap:** no light mode. Flowlet is a single-theme brand ("Night current").
+- **Honest gap:** no dark mode. Flowlet is a single light theme ("Clear current"); the earlier dark "Night current" was retired in Nov 2026.
 
 ### Design resources from @iamtanzil_ (2108066324907962575), guidance only
 
@@ -132,3 +132,20 @@ Studied for patterns only (Aveon, Bud, Ayush Wanjari, Significa, Three Circles):
 | Minimal Gallery | Restraint check: one accent per state, no decoration that doesn't carry state |
 
 Deliberately skipped: gradient buttons, liquid glass, CSS text effects, 3D icons, and flashy Aceternity / Magic UI effects (beams, spotlights, count-up numbers). They conflict with the anti-slop rules.
+
+## Light iOS fintech direction (ChatGPT, Nov 2026)
+
+The brief: look like a modern iOS fintech app, not a neon Web3 dashboard. What changed and why:
+
+- **Dark to light.** Flowlet moved from "Night current" to a light theme: `#F7F7F8` canvas, white cards, near-black text, radius 24, soft shadows, round icons and avatars. Its accent is mint/teal (`#066A4F`) so it never looks like Kindly's coral.
+- **Four tabs.** Home (automation status card, balances, run/replay demo, the flow rail), Flows (rules, Safety Guard, reactive brain), Activity (live proof timeline, contracts, log) and Settings. `#/status`, `#/timeline` and `#/proof` redirect; the pre-tab anchors too. On desktop the Home tab is a two-column dashboard: status + stats on top, the hero and run panel full width, proof next to the reactive brain.
+- **Pause all rules is always one tap away:** the primary button on the Home status card, the first row of Settings → Security & Permissions, and the sidebar footer on desktop. It is the existing pause, not a new one, and it still asks MetaMask to sign. When access is revoked the button becomes "Review access", because there is nothing left to pause.
+- **iPhone-style Settings.** Grouped rounded lists: Wallet (the MetaMask fox, short address, a Connected pill; Networks with a Testnet pill), Security & Permissions (Pause all rules, Funds & permissions with a Secured pill, how funds are protected, what's visible on-chain), Notifications, Help & Support (Replay the last real loop, source code), and Disconnect wallet. The funds panel and install card sit next to it on desktop.
+- **Notifications are honest.** The row says Triggered and Executed show on Home as they happen and that push notifications aren't available. We don't ask for a permission we wouldn't use.
+- **Disconnect** calls `wallet_revokePermissions` (MetaMask supports it; other wallets ignore it) and forgets the account in the page. It never claims to log the wallet out.
+- **Crypto details moved to detail screens.** Home shows words and small status pills (Active, Connected, Secured, Waiting). Hashes, contracts and chain IDs live in Activity and in the sheets.
+- **Icons are Lucide** (ISC license, v0.460.0) drawn inline as SVG. No emoji icons. The Settings tab uses Lucide's gear. The Ethereum and Lasna chain glyphs stay custom.
+- **MetaMask fox.** `web/brand/metamask-fox.svg` is the official fox from the MetaMask logo pack on metamask.io/assets, unmodified (not redrawn, recoloured or stretched). It only appears next to the words "MetaMask" (Open in MetaMask, Get MetaMask, the connected-wallet row), on a white or neutral background, and nothing suggests MetaMask endorses Flowlet. The assets page lists the colours but no written usage rules, so we followed the usual brand-pack norms.
+- **No WalletConnect logo.** Flowlet only supports injected wallets, so showing WalletConnect would promise something that isn't there.
+- **Docked tab bar, not a floating pill.** The brief asked for "floating" UI; we float the cards (white on off-white, soft shadows) but keep the bottom bar docked, because Expo's native-feel guidance lists a floating tab pill as a web-app tell, and a docked bar keeps 44px targets above the home indicator.
+- **Kept:** the Run demo, Replay the last real loop, the proof timeline with tx links, funds sheet, trust and privacy sheets, offline notice, focus rings, 44px touch targets and 150 to 250ms ease-out motion. Verified again with axe-core on phone, tablet and desktop (0 violations), a full Run demo on the local stack, and `forge test` (24/24).
