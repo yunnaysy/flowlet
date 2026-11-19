@@ -12,9 +12,9 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 |---|---|---|
 | ![Welcome: floating 3D objects, big title, black pill Connect](docs/img/v3-mobile-welcome.png) | ![Home: greeting, colour cards, automation is live](docs/img/v3-mobile-home.png) | ![Desktop home on the live testnet vault](docs/img/v3-desktop-home-live.png) |
 
-**Demo video (2:36):** [![Flowlet demo video poster: click to play](docs/video/flowlet-demo-poster.png)](docs/video/flowlet-demo.mp4)
+**Demo video (1:59):** [![Flowlet demo video poster: click to play](docs/video/flowlet-demo-poster.png)](docs/video/flowlet-demo.mp4)
 
-[docs/video/flowlet-demo.mp4](docs/video/flowlet-demo.mp4) (4.7 MB). English voiceover (edge-tts neural voice) and burned-in captions, recorded from the v3 live site in no-wallet, read-only mode. It shows the public vault in its current Active state. The Safety Guard revoke appears only as the recorded loop #5 proof; nothing was revoked on-chain for this recording.
+[docs/video/flowlet-demo.mp4](docs/video/flowlet-demo.mp4) (1:59, 15 MB). English voiceover (edge-tts neural voice), burned-in captions and a music bed, captured from the v3 live site in no-wallet, read-only mode. The demo-loop replay (labelled Demo Mode) is slowed to match the narration; the proof scene shows the three real loop #2 transactions. It shows the public vault in its current Active state. The Safety Guard revoke appears only as the recorded loop #5 proof; nothing was revoked on-chain for this recording.
 
 Design system: [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md) · Security, custody & privacy: [docs/SECURITY.md](docs/SECURITY.md) · Pitch: [docs/PITCH.md](docs/PITCH.md)
 
